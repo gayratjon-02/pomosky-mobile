@@ -124,24 +124,35 @@ final weatherFetcherProvider = Provider<Future<WeatherData?> Function(String)>(
 /// How often the weather is refreshed. The server caches it for a similar time.
 const weatherRefresh = Duration(minutes: 5);
 
+/// How long to wait between weather refreshes; tests shorten it.
+final weatherRefreshProvider = Provider<Duration>((ref) => weatherRefresh);
+
 /// The weather at the host's place, or null while it is not known. It loads
 /// once the host has set a place and then refreshes every few minutes.
-final weatherProvider = StreamProvider.autoDispose.family<WeatherData?, String>(
-  (ref, roomId) async* {
-    final hasPlace = ref.watch(
-      roomStateProvider(roomId).select((s) => s.location != null),
-    );
-    if (!hasPlace) {
-      yield null;
-      return;
-    }
-    final fetch = ref.watch(weatherFetcherProvider);
-    while (true) {
-      yield await fetch(roomId);
-      await Future<void>.delayed(weatherRefresh);
-    }
-  },
-);
+final weatherProvider = StreamProvider.autoDispose.family<WeatherData?, String>((
+  ref,
+  roomId,
+) async* {
+  // Watching the coordinates, not just "has a place", restarts the loop when
+  // the host picks another city.
+  final place = ref.watch(
+    roomStateProvider(roomId).select(
+      (s) => s.location == null ? null : (s.location!.lat, s.location!.lon),
+    ),
+  );
+  if (place == null) {
+    yield null;
+    return;
+  }
+  final fetch = ref.watch(weatherFetcherProvider);
+  WeatherData? last;
+  while (true) {
+    // A failed refresh keeps the last good reading instead of blanking the sky.
+    last = await fetch(roomId) ?? last;
+    yield last;
+    await Future<void>.delayed(weatherRefresh);
+  }
+});
 
 /// The saved settings. The app overrides it with the preferences-backed one.
 final appSettingsProvider = Provider<AppSettings>((ref) => MemorySettings());

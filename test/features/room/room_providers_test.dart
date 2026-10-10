@@ -147,6 +147,66 @@ void main() {
     expect(await store.read('abcd2345'), isNull);
     expect(await container.read(hostTokenProvider('abcd2345').future), isNull);
   });
+
+  test(
+    'weather follows a change of city and survives a failed refresh',
+    () async {
+      final transport = _Transport();
+      final answers = <WeatherData?>[
+        _weather(cloud: 10), // first city
+        _weather(cloud: 90), // second city
+        null, // a failed fetch must not erase it
+      ];
+      final container = ProviderContainer(
+        overrides: [
+          hostTokenStoreProvider.overrideWithValue(MemoryHostTokenStore()),
+          roomTransportFactoryProvider.overrideWithValue((_, _) => transport),
+          weatherFetcherProvider.overrideWithValue(
+            (id) async => answers.removeAt(0),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      await container.read(hostTokenProvider('abcd2345').future);
+      container.listen(roomStateProvider('abcd2345'), (_, _) {});
+      final sub = container.listen(weatherProvider('abcd2345'), (_, _) {});
+
+      StateMessage at(double lat, double lon) => StateMessage(
+        roomId: 'abcd2345',
+        timer: _idle,
+        viewers: 1,
+        reactions: const {},
+        city: 'X',
+        location: LocationView(lat: lat, lon: lon, tz: 'UTC'),
+        serverNowMs: 1,
+      );
+
+      transport.msgs.add(at(37.57, 126.98));
+      await Future<void>.delayed(const Duration(milliseconds: 30));
+      expect(sub.read().value?.cloudCoverPct, 10);
+
+      transport.msgs.add(at(35.1, 129.04)); // another city
+      await Future<void>.delayed(const Duration(milliseconds: 30));
+      expect(sub.read().value?.cloudCoverPct, 90);
+
+      // The same place again does not refetch.
+      transport.msgs.add(at(35.1, 129.04));
+      await Future<void>.delayed(const Duration(milliseconds: 30));
+      expect(answers.length, 1);
+    },
+  );
 }
 
 const _idle = TimerView.idle;
+
+WeatherData _weather({required double cloud}) => WeatherData(
+  cloudCoverPct: cloud,
+  precipitationMmh: 0,
+  snowfallCmh: 0,
+  windSpeedKmh: 5,
+  windDirDeg: 270,
+  fogDensity: 0,
+  thunder: false,
+  temperatureC: 12,
+  observedAtMs: 0,
+);
