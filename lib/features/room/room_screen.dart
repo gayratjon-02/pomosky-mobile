@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -629,6 +630,8 @@ class _Ring extends StatelessWidget {
   }
 }
 
+/// Four reactions in one glass pill. Each one hops when tapped, so the tap
+/// is felt before the server's count comes back.
 class _ReactionBar extends StatelessWidget {
   const _ReactionBar({required this.state, required this.onReact});
 
@@ -637,19 +640,106 @@ class _ReactionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        for (final e in _reactions.entries)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: TextButton(
-              onPressed: () => onReact(e.key),
-              style: TextButton.styleFrom(minimumSize: const Size(56, 48)),
-              child: Text('${e.value} ${state.reactions[e.key] ?? 0}'),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: Gap.l),
+      child: GlassCard(
+        radius: Radii.pill,
+        padding: const EdgeInsets.all(Gap.xs),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final e in _reactions.entries)
+              Flexible(
+                child: _Reaction(
+                  emoji: e.value,
+                  count: state.reactions[e.key] ?? 0,
+                  onTap: () => onReact(e.key),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Reaction extends StatefulWidget {
+  const _Reaction({
+    required this.emoji,
+    required this.count,
+    required this.onTap,
+  });
+
+  final String emoji;
+  final int count;
+  final VoidCallback onTap;
+
+  @override
+  State<_Reaction> createState() => _ReactionState();
+}
+
+class _ReactionState extends State<_Reaction>
+    with SingleTickerProviderStateMixin {
+  late final _hop = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 420),
+  );
+
+  @override
+  void dispose() {
+    _hop.dispose();
+    super.dispose();
+  }
+
+  void _tap() {
+    HapticFeedback.lightImpact();
+    _hop.forward(from: 0);
+    widget.onTap();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final style = Theme.of(context).textTheme.labelLarge?.copyWith(
+      color: widget.count > 0 ? Tint.cream : Tint.creamDim,
+      fontFeatures: const [FontFeature.tabularFigures()],
+    );
+    return Material(
+      type: MaterialType.transparency,
+      child: InkWell(
+        onTap: _tap,
+        borderRadius: BorderRadius.circular(Radii.pill),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 56, minHeight: 44),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: Gap.m),
+            child: Center(
+              child: AnimatedBuilder(
+                animation: _hop,
+                builder: (context, child) {
+                  // Up and back with a little overshoot.
+                  final t = _hop.value;
+                  final lift = Curves.easeOutBack.transform(
+                    t < 0.4 ? t / 0.4 : 1 - (t - 0.4) / 0.6,
+                  );
+                  return Transform.translate(
+                    offset: Offset(0, -4 * lift),
+                    child: Transform.scale(
+                      scale: 1 + 0.12 * lift,
+                      child: child,
+                    ),
+                  );
+                },
+                child: Text(
+                  '${widget.emoji} ${widget.count}',
+                  maxLines: 1,
+                  softWrap: false,
+                  style: style,
+                ),
+              ),
             ),
           ),
-      ],
+        ),
+      ),
     );
   }
 }
