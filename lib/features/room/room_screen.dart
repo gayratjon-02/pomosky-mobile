@@ -14,6 +14,7 @@ import '../../domain/timer_view.dart';
 import '../../ui/sky/sky_background.dart';
 import '../../ui/sky/sky_inputs.dart';
 import '../../ui/timer_ring.dart';
+import '../../ui/tokens.dart';
 import 'error_text.dart';
 import 'host_controls.dart';
 import 'nickname_dialog.dart';
@@ -372,46 +373,75 @@ class _TimerFace extends StatelessWidget {
     Phase.idle => 'Waiting for the host',
   };
 
-  Color _color(ColorScheme scheme) => switch (timer.phase) {
-    Phase.focus => const Color(0xFFFF8A65),
-    Phase.break_ => const Color(0xFF66D9A8),
-    Phase.paused => scheme.outline,
-    Phase.idle => scheme.outlineVariant,
+  Color get _color => switch (timer.phase) {
+    Phase.focus => Tint.apricot,
+    Phase.break_ => Tint.mint,
+    Phase.paused => Tint.amber,
+    Phase.idle => Tint.creamFaint,
   };
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return TimerRing(
-      fraction: fraction,
-      color: _color(theme.colorScheme),
-      size: size,
-      strokeWidth: size / 25,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(_phaseLabel, style: theme.textTheme.titleMedium),
-          const SizedBox(height: 4),
-          Semantics(
-            label: '${formatMMSS(remainingMs)} remaining',
-            child: Text(
-              formatMMSS(remainingMs),
-              style: theme.textTheme.displayLarge?.copyWith(
-                fontSize: size * 0.21,
-                fontFeatures: const [FontFeature.tabularFigures()],
+    final color = _color;
+    // A soft dusk behind the numbers keeps them readable on a daytime sky.
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [
+            Night.background.withValues(alpha: 0.38),
+            Night.background.withValues(alpha: 0.18),
+            Night.background.withValues(alpha: 0),
+          ],
+          stops: const [0, 0.62, 1],
+        ),
+      ),
+      child: TimerRing(
+        fraction: fraction,
+        color: color,
+        size: size,
+        strokeWidth: (size / 36).clamp(4.0, 8.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedDefaultTextStyle(
+              duration: Motion.normal,
+              style: theme.textTheme.labelSmall!.copyWith(
+                color: color,
+                letterSpacing: 2,
+              ),
+              child: Text(_phaseLabel),
+            ),
+            const SizedBox(height: Gap.s),
+            Semantics(
+              label: '${formatMMSS(remainingMs)} remaining',
+              child: Text(
+                formatMMSS(remainingMs),
+                style: theme.textTheme.displayLarge?.copyWith(
+                  fontSize: size * 0.24,
+                  letterSpacing: -size * 0.008,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
               ),
             ),
-          ),
-          if (timer.label.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(
-              timer.label,
-              style: theme.textTheme.bodyMedium,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+            if (timer.label.isNotEmpty) ...[
+              const SizedBox(height: Gap.s),
+              ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: size * 0.6),
+                child: Text(
+                  timer.label,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: Tint.creamDim,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
