@@ -13,6 +13,7 @@ import '../../domain/host_actions.dart';
 import '../../domain/timer_math.dart';
 import '../../domain/weather_text.dart';
 import '../../domain/timer_view.dart';
+import '../../ui/buttons.dart';
 import '../../ui/glass.dart';
 import '../../ui/sky/sky_background.dart';
 import '../../ui/sky/sky_inputs.dart';
@@ -61,21 +62,33 @@ class _RoomNotFound extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(),
       body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: Gap.xxl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              const Icon(
+                Icons.nights_stay_outlined,
+                size: 40,
+                color: Tint.creamFaint,
+              ),
+              const SizedBox(height: Gap.l),
               Text('Room not found', style: theme.textTheme.headlineSmall),
-              const SizedBox(height: 8),
-              const Text(
+              const SizedBox(height: Gap.s),
+              Text(
                 'The code may be wrong, or the host closed the room.',
                 textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: Tint.creamDim,
+                ),
               ),
-              const SizedBox(height: 24),
-              FilledButton(
-                onPressed: () => context.go('/'),
-                child: const Text('Back'),
+              const SizedBox(height: Gap.xl),
+              ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 160),
+                child: PrimaryButton(
+                  label: 'Back',
+                  onPressed: () => context.go('/'),
+                ),
               ),
             ],
           ),
