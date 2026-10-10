@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/config.dart';
 import '../../data/room_api.dart';
+import '../../data/weather_api.dart';
 import '../../data/ws/room_socket.dart';
 import '../../data/ws/room_transport.dart';
 import 'room_session.dart';
@@ -54,6 +55,33 @@ class RoomStateNotifier extends AutoDisposeFamilyNotifier<RoomState, String> {
 
 final roomStateProvider = NotifierProvider.autoDispose
     .family<RoomStateNotifier, RoomState, String>(RoomStateNotifier.new);
+
+/// Fetches the weather; tests override it.
+final weatherFetcherProvider = Provider<Future<WeatherData?> Function(String)>(
+  (ref) => fetchWeather,
+);
+
+/// How often the weather is refreshed. The server caches it for a similar time.
+const weatherRefresh = Duration(minutes: 5);
+
+/// The weather at the host's place, or null while it is not known. It loads
+/// once the host has set a place and then refreshes every few minutes.
+final weatherProvider = StreamProvider.autoDispose.family<WeatherData?, String>(
+  (ref, roomId) async* {
+    final hasPlace = ref.watch(
+      roomStateProvider(roomId).select((s) => s.location != null),
+    );
+    if (!hasPlace) {
+      yield null;
+      return;
+    }
+    final fetch = ref.watch(weatherFetcherProvider);
+    while (true) {
+      yield await fetch(roomId);
+      await Future<void>.delayed(weatherRefresh);
+    }
+  },
+);
 
 /// Fires several times a second so countdowns repaint.
 final tickProvider = StreamProvider.autoDispose<int>(

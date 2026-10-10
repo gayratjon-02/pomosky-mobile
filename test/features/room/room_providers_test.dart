@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pomosky_mobile/data/protocol/server_messages.dart';
+import 'package:pomosky_mobile/data/weather_api.dart';
 import 'package:pomosky_mobile/data/ws/room_transport.dart';
 import 'package:pomosky_mobile/domain/timer_view.dart';
 import 'package:pomosky_mobile/features/room/room_providers.dart';
@@ -66,6 +67,52 @@ void main() {
       expect(transport.closed, isTrue);
     },
   );
+
+  test('weather waits for a place, then loads', () async {
+    final transport = _Transport();
+    var fetches = 0;
+    final container = ProviderContainer(
+      overrides: [
+        roomTransportFactoryProvider.overrideWithValue((_) => transport),
+        weatherFetcherProvider.overrideWithValue((id) async {
+          fetches++;
+          return const WeatherData(
+            cloudCoverPct: 80,
+            precipitationMmh: 0,
+            snowfallCmh: 0,
+            windSpeedKmh: 5,
+            windDirDeg: 270,
+            fogDensity: 0,
+            thunder: false,
+            temperatureC: 12,
+            observedAtMs: 0,
+          );
+        }),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    final sub = container.listen(weatherProvider('abcd2345'), (_, _) {});
+    container.listen(roomStateProvider('abcd2345'), (_, _) {});
+    await Future<void>.delayed(Duration.zero);
+    expect(sub.read().value, isNull);
+    expect(fetches, 0);
+
+    transport.msgs.add(
+      const StateMessage(
+        roomId: 'abcd2345',
+        timer: _idle,
+        viewers: 1,
+        reactions: {},
+        city: 'Seoul',
+        location: LocationView(lat: 37.57, lon: 126.98, tz: 'Asia/Seoul'),
+        serverNowMs: 1,
+      ),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    expect(fetches, 1);
+    expect(sub.read().value?.cloudCoverPct, 80);
+  });
 }
 
 const _idle = TimerView.idle;
