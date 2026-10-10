@@ -84,6 +84,16 @@ class _RoomView extends ConsumerWidget {
     final state = ref.watch(roomStateProvider(roomId));
     ref.watch(tickProvider); // repaint the countdown
     final weather = ref.watch(weatherProvider(roomId)).value;
+    final soundOn = ref.watch(soundEnabledProvider);
+    final watcher = ref.watch(phaseEndWatcherProvider(roomId));
+    ref.listen(tickProvider, (_, _) {
+      final timer = ref.read(roomStateProvider(roomId)).timer;
+      if (watcher.shouldSignal(timer, session.serverNowMs())) {
+        ref
+            .read(signalPlayerProvider)
+            .ring(sound: ref.read(soundEnabledProvider));
+      }
+    });
     final nowMs = session.serverNowMs();
     final remaining = remainingMs(state.timer, nowMs);
 
@@ -98,7 +108,16 @@ class _RoomView extends ConsumerWidget {
           onPressed: () => context.go('/'),
         ),
         title: Text(state.city.isEmpty ? 'Pomosky' : state.city),
-        actions: [_Viewers(count: state.viewers)],
+        actions: [
+          IconButton(
+            tooltip: soundOn ? 'Mute the signal' : 'Unmute the signal',
+            icon: Icon(
+              soundOn ? Icons.volume_up_outlined : Icons.volume_off_outlined,
+            ),
+            onPressed: () => ref.read(soundEnabledProvider.notifier).toggle(),
+          ),
+          _Viewers(count: state.viewers),
+        ],
       ),
       body: SkyBackground(
         inputs: _skyFor(state, weather, DateTime.now()),

@@ -5,9 +5,12 @@ import '../../data/host_tokens.dart';
 import '../../data/protocol/client_messages.dart';
 import '../../data/places_api.dart';
 import '../../data/room_api.dart';
+import '../../data/settings.dart';
+import '../../data/signal_player.dart';
 import '../../data/weather_api.dart';
 import '../../data/ws/room_socket.dart';
 import '../../data/ws/room_transport.dart';
+import '../../domain/phase_end.dart';
 import 'place_picker.dart';
 import 'room_session.dart';
 import 'room_state.dart';
@@ -46,7 +49,8 @@ final roomTransportFactoryProvider =
 final roomLookupProvider = FutureProvider.autoDispose
     .family<RoomLookup, String>((ref, roomId) => lookupRoom(roomId));
 
-final _nowMsProvider = Provider<int Function()>(
+/// The phone's clock in milliseconds; tests override it.
+final nowMsProvider = Provider<int Function()>(
   (ref) =>
       () => DateTime.now().millisecondsSinceEpoch,
 );
@@ -61,7 +65,7 @@ final roomSessionProvider = Provider.autoDispose.family<RoomSession, String>((
       roomId,
       ref.watch(hostTokenProvider(roomId)).value,
     ),
-    nowMs: ref.watch(_nowMsProvider),
+    nowMs: ref.watch(nowMsProvider),
   )..start();
   ref.onDispose(session.dispose);
   return session;
@@ -111,6 +115,39 @@ final weatherProvider = StreamProvider.autoDispose.family<WeatherData?, String>(
     }
   },
 );
+
+/// The saved settings. The app overrides it with the preferences-backed one.
+final appSettingsProvider = Provider<AppSettings>((ref) => MemorySettings());
+
+class SoundEnabledNotifier extends Notifier<bool> {
+  @override
+  bool build() => ref.watch(appSettingsProvider).soundEnabled;
+
+  Future<void> toggle() async {
+    state = !state;
+    await ref.read(appSettingsProvider).setSoundEnabled(state);
+  }
+}
+
+/// Whether the end-of-phase signal plays a sound.
+final soundEnabledProvider = NotifierProvider<SoundEnabledNotifier, bool>(
+  SoundEnabledNotifier.new,
+);
+
+/// Rings and vibrates at the end of a phase. Silent unless the app overrides it.
+final signalPlayerProvider = Provider<SignalPlayer>(
+  (ref) => SilentSignalPlayer(),
+);
+
+/// Remembers which phase already rang, per open room.
+final phaseEndWatcherProvider = Provider.autoDispose
+    .family<PhaseEndWatcher, String>((ref, roomId) {
+      final player = ref.watch(signalPlayerProvider);
+      ref.onDispose(
+        player.stop,
+      ); // leaving the room silences a ring in progress
+      return PhaseEndWatcher();
+    });
 
 /// Fires several times a second so countdowns repaint.
 final tickProvider = StreamProvider.autoDispose<int>(
