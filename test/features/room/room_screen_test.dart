@@ -238,6 +238,44 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
   });
 
+  testWidgets('a small phone with large text still fits the host screen', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320 * 3, 568 * 3); // iPhone SE
+    tester.view.devicePixelRatio = 3;
+    tester.platformDispatcher.textScaleFactorTestValue = 1.5;
+    addTearDown(tester.view.reset);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    final t = await _pump(tester);
+    t.connected();
+    t.msgs.add(const HostOkMessage());
+    t.msgs.add(
+      const PeopleMessage(
+        people: [
+          PersonView(name: 'Ayla'),
+          PersonView(name: 'Bo'),
+        ],
+        more: 6,
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    await tester.drag(
+      find.byType(SingleChildScrollView),
+      const Offset(0, -800),
+    );
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    expect(find.text('Start break'), findsOneWidget);
+    expect(find.textContaining('👏'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
   testWidgets('a small phone shows the whole host screen without overflow', (
     tester,
   ) async {

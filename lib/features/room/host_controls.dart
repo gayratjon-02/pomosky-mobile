@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/host_actions.dart';
+import '../../ui/buttons.dart';
+import '../../ui/glass.dart';
+import '../../ui/tokens.dart';
 
 const _focusMinutes = [15, 25, 45, 50];
 const _breakMinutes = [5, 10, 15];
@@ -53,30 +56,32 @@ class _HostControlsState extends State<HostControls> {
   @override
   Widget build(BuildContext context) {
     final a = widget.actions;
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.85),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [_place(), a.canStart ? _setup() : _running(a)],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: Gap.l),
+      // A touch of night under the glass: on a bright daytime sky the panel
+      // would otherwise wash out to white behind cream text.
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Night.background.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(Radii.card),
         ),
-      ),
-    );
-  }
-
-  Widget _place() {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: TextButton.icon(
-        onPressed: widget.onPickPlace,
-        icon: const Icon(Icons.place_outlined, size: 18),
-        label: Text(
-          widget.city.isEmpty
-              ? 'Choose the sky\'s city'
-              : '${widget.city} · change',
+        child: GlassCard(
+          strong: true,
+          padding: const EdgeInsets.fromLTRB(Gap.l, Gap.s, Gap.l, Gap.l),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _PlaceRow(city: widget.city, onTap: widget.onPickPlace),
+              const SizedBox(height: Gap.s),
+              AnimatedSize(
+                duration: Motion.normal,
+                curve: Motion.curve,
+                alignment: Alignment.topCenter,
+                child: a.canStart ? _setup() : _running(a),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -87,71 +92,42 @@ class _HostControlsState extends State<HostControls> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _minutes(
-          'Focus',
-          _focusMinutes,
-          _focus,
-          (m) => setState(() => _focus = m),
+        _Caption('Focus'),
+        const SizedBox(height: Gap.s),
+        PillSegments<int>(
+          options: _focusMinutes,
+          selected: _focus,
+          labelOf: (m) => '$m',
+          onChanged: (m) => setState(() => _focus = m),
         ),
-        _minutes(
-          'Break',
-          _breakMinutes,
-          _break,
-          (m) => setState(() => _break = m),
+        const SizedBox(height: Gap.m),
+        _Caption('Break'),
+        const SizedBox(height: Gap.s),
+        PillSegments<int>(
+          options: _breakMinutes,
+          selected: _break,
+          labelOf: (m) => '$m',
+          onChanged: (m) => setState(() => _break = m),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: Gap.l),
         TextField(
           controller: _label,
           maxLength: 60,
+          textCapitalization: TextCapitalization.sentences,
           decoration: const InputDecoration(
-            labelText: 'What are you working on?',
+            hintText: 'What are you working on?',
             counterText: '',
-            border: OutlineInputBorder(),
-            isDense: true,
           ),
         ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: FilledButton(
-                onPressed: () => _start(true),
-                child: const Text('Start focus'),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: FilledButton.tonal(
-                onPressed: () => _start(false),
-                child: const Text('Start break'),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _minutes(
-    String name,
-    List<int> options,
-    int selected,
-    ValueChanged<int> onPick,
-  ) {
-    return Row(
-      children: [
-        SizedBox(width: 56, child: Text(name)),
-        Expanded(
-          child: Wrap(
-            spacing: 8,
-            children: [
-              for (final m in options)
-                ChoiceChip(
-                  label: Text('$m'),
-                  selected: m == selected,
-                  onSelected: (_) => onPick(m),
-                ),
-            ],
+        const SizedBox(height: Gap.l),
+        _Pair(
+          first: PrimaryButton(
+            label: 'Start focus',
+            onPressed: () => _start(true),
+          ),
+          second: GlassButton(
+            label: 'Start break',
+            onPressed: () => _start(false),
           ),
         ),
       ],
@@ -159,32 +135,145 @@ class _HostControlsState extends State<HostControls> {
   }
 
   Widget _running(HostActions a) {
-    return Row(
-      children: [
-        if (a.canPause)
-          Expanded(
-            child: FilledButton(
-              onPressed: widget.onPause,
-              child: const Text('Pause'),
-            ),
-          ),
-        if (a.canResume)
-          Expanded(
-            child: FilledButton(
+    return _Pair(
+      first: a.canResume
+          ? PrimaryButton(
+              label: 'Resume',
+              icon: Icons.play_arrow_rounded,
               onPressed: widget.onResume,
-              child: const Text('Resume'),
-            ),
-          ),
-        if (a.canReset) ...[
-          const SizedBox(width: 8),
-          Expanded(
-            child: OutlinedButton(
+            )
+          : a.canPause
+          ? GlassButton(
+              label: 'Pause',
+              icon: Icons.pause_rounded,
+              onPressed: widget.onPause,
+            )
+          : null,
+      second: a.canReset
+          ? GlassButton(
+              label: 'Reset',
+              icon: Icons.replay_rounded,
               onPressed: widget.onReset,
-              child: const Text('Reset'),
-            ),
+            )
+          : null,
+    );
+  }
+}
+
+/// Two buttons side by side when there is room for both labels, else stacked
+/// (narrow phones, large text).
+class _Pair extends StatelessWidget {
+  const _Pair({this.first, this.second});
+
+  final Widget? first;
+  final Widget? second;
+
+  @override
+  Widget build(BuildContext context) {
+    final buttons = [first, second].whereType<Widget>().toList();
+    if (buttons.length < 2) {
+      return buttons.isEmpty ? const SizedBox.shrink() : buttons.single;
+    }
+    // The screen width, not a LayoutBuilder: the room measures its column's
+    // intrinsic height, which a LayoutBuilder cannot report.
+    final scale = MediaQuery.textScalerOf(context).scale(1);
+    final width = MediaQuery.sizeOf(context).width - 4 * Gap.l;
+    if (width >= 290 * scale) {
+      return Row(
+        children: [
+          Expanded(child: buttons[0]),
+          const SizedBox(width: Gap.s),
+          Expanded(child: buttons[1]),
+        ],
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        buttons[0],
+        const SizedBox(height: Gap.s),
+        buttons[1],
+      ],
+    );
+  }
+}
+
+class _Caption extends StatelessWidget {
+  const _Caption(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: Gap.xs),
+      child: Row(
+        children: [
+          Text(
+            text,
+            style: Theme.of(
+              context,
+            ).textTheme.labelMedium?.copyWith(color: Tint.creamDim),
+          ),
+          const Spacer(),
+          Text(
+            'min',
+            style: Theme.of(
+              context,
+            ).textTheme.labelMedium?.copyWith(color: Tint.creamFaint),
           ),
         ],
-      ],
+      ),
+    );
+  }
+}
+
+/// The sky's city, quiet until tapped: the host sets it once and rarely again.
+class _PlaceRow extends StatelessWidget {
+  const _PlaceRow({required this.city, required this.onTap});
+
+  final String city;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = Theme.of(context).textTheme.labelMedium;
+    final empty = city.isEmpty;
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(Radii.pill),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 44),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: Gap.xs),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  empty
+                      ? Icons.add_location_alt_outlined
+                      : Icons.place_outlined,
+                  size: 18,
+                  color: empty ? Tint.apricot : Tint.creamDim,
+                ),
+                const SizedBox(width: Gap.s),
+                Flexible(
+                  child: Text(
+                    empty ? 'Choose the sky\'s city' : '$city · change',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: style?.copyWith(
+                      color: empty ? Tint.apricot : Tint.creamDim,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
