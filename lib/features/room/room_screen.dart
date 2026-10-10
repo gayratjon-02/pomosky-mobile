@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../data/room_api.dart';
 import '../../data/ws/room_transport.dart';
 import '../../domain/timer_math.dart';
 import '../../domain/timer_view.dart';
@@ -10,8 +11,59 @@ import 'room_state.dart';
 
 const _reactions = {'clap': '👏', 'coffee': '☕', 'fire': '🔥', 'heart': '❤️'};
 
+/// Checks that the room exists, then shows it.
 class RoomScreen extends ConsumerWidget {
   const RoomScreen({super.key, required this.roomId});
+
+  final String roomId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lookup = ref.watch(roomLookupProvider(roomId));
+    return switch (lookup) {
+      AsyncData(value: RoomLookup.notFound) => const _RoomNotFound(),
+      AsyncData() => _RoomView(roomId: roomId),
+      AsyncError() => _RoomView(roomId: roomId),
+      _ => const Scaffold(body: Center(child: CircularProgressIndicator())),
+    };
+  }
+}
+
+class _RoomNotFound extends StatelessWidget {
+  const _RoomNotFound();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Room not found', style: theme.textTheme.headlineSmall),
+              const SizedBox(height: 8),
+              const Text(
+                'The code may be wrong, or the host closed the room.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              FilledButton(
+                onPressed: () => context.go('/'),
+                child: const Text('Back'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RoomView extends ConsumerWidget {
+  const _RoomView({required this.roomId});
 
   final String roomId;
 

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pomosky_mobile/data/protocol/server_messages.dart';
+import 'package:pomosky_mobile/data/room_api.dart';
 import 'package:pomosky_mobile/data/ws/room_transport.dart';
 import 'package:pomosky_mobile/domain/timer_view.dart';
 import 'package:pomosky_mobile/features/room/room_providers.dart';
@@ -46,6 +47,7 @@ Future<_Transport> _pump(WidgetTester tester) async {
     ProviderScope(
       overrides: [
         roomTransportFactoryProvider.overrideWithValue((_) => t),
+        roomLookupProvider.overrideWith((ref, id) => RoomLookup.found),
         // No real ticker: its periodic timer would outlive the test.
         tickProvider.overrideWith((ref) => const Stream<int>.empty()),
       ],
@@ -128,5 +130,37 @@ void main() {
     );
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('a room that does not exist shows a message, no socket', (
+    tester,
+  ) async {
+    var connections = 0;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          roomTransportFactoryProvider.overrideWithValue((_) {
+            connections++;
+            return _Transport();
+          }),
+          roomLookupProvider.overrideWith((ref, id) => RoomLookup.notFound),
+        ],
+        child: MaterialApp.router(
+          routerConfig: GoRouter(
+            routes: [
+              GoRoute(
+                path: '/',
+                builder: (_, _) => const RoomScreen(roomId: 'abcd2345'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('Room not found'), findsOneWidget);
+    expect(connections, 0);
   });
 }
