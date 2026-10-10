@@ -5,7 +5,8 @@ import 'package:pomosky_mobile/app.dart';
 void main() {
   testWidgets('app starts on the home screen', (tester) async {
     await tester.pumpWidget(const ProviderScope(child: PomoskyApp()));
-    await tester.pumpAndSettle();
+    // The live sky never settles, so pump a moment instead.
+    await tester.pump(const Duration(milliseconds: 500));
     expect(find.text('Pomosky'), findsOneWidget);
   });
 }
