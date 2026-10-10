@@ -58,6 +58,13 @@ final class LiveActivityChannel {
       durationSeconds: duration / 1000)
   }
 
+  /// A running phase goes stale when it ends, so the widget can show "Done"
+  /// even if the app was suspended and could not end the activity itself.
+  @available(iOS 16.2, *)
+  private static func staleDate(for state: PomoskyTimerAttributes.ContentState) -> Date? {
+    state.isPaused ? nil : state.endDate
+  }
+
   @available(iOS 16.2, *)
   private func start(_ state: PomoskyTimerAttributes.ContentState, _ result: @escaping FlutterResult) {
     guard ActivityAuthorizationInfo().areActivitiesEnabled else {
@@ -72,7 +79,7 @@ final class LiveActivityChannel {
       do {
         current = try Activity.request(
           attributes: PomoskyTimerAttributes(),
-          content: .init(state: state, staleDate: nil),
+          content: .init(state: state, staleDate: Self.staleDate(for: state)),
           pushType: nil)
         result(nil)
       } catch {
@@ -88,7 +95,7 @@ final class LiveActivityChannel {
       return
     }
     Task { @MainActor in
-      await activity.update(.init(state: state, staleDate: nil))
+      await activity.update(.init(state: state, staleDate: Self.staleDate(for: state)))
       result(nil)
     }
   }

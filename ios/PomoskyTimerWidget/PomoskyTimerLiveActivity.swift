@@ -28,6 +28,8 @@ extension PomoskyTimerAttributes.ContentState {
 /// counting without any update from the app; a paused one is frozen.
 struct CountdownText: View {
   let state: PomoskyTimerAttributes.ContentState
+  /// True once a running phase has passed its end (the app may be suspended).
+  var isStale = false
 
   private func frozen(_ seconds: Double) -> String {
     let total = Int(max(seconds, 0).rounded(.up))
@@ -37,6 +39,8 @@ struct CountdownText: View {
   var body: some View {
     if state.isPaused {
       Text(frozen(state.remainingSeconds)).monospacedDigit()
+    } else if isStale {
+      Text("Done")
     } else {
       Text(timerInterval: Date()...max(state.endDate, Date().addingTimeInterval(1)),
            countsDown: true)
@@ -47,6 +51,7 @@ struct CountdownText: View {
 
 struct LockScreenView: View {
   let state: PomoskyTimerAttributes.ContentState
+  var isStale = false
 
   var body: some View {
     HStack(spacing: 14) {
@@ -60,7 +65,7 @@ struct LockScreenView: View {
         }
       }
       Spacer()
-      CountdownText(state: state)
+      CountdownText(state: state, isStale: isStale)
         .font(.system(size: 36, weight: .semibold, design: .rounded))
         .foregroundStyle(state.tint)
         .lineLimit(1)
@@ -77,7 +82,7 @@ struct LockScreenView: View {
 struct PomoskyTimerLiveActivity: Widget {
   var body: some WidgetConfiguration {
     ActivityConfiguration(for: PomoskyTimerAttributes.self) { context in
-      LockScreenView(state: context.state)
+      LockScreenView(state: context.state, isStale: context.isStale)
     } dynamicIsland: { context in
       let state = context.state
       return DynamicIsland {
@@ -87,7 +92,7 @@ struct PomoskyTimerLiveActivity: Widget {
             .foregroundStyle(state.tint)
         }
         DynamicIslandExpandedRegion(.trailing) {
-          CountdownText(state: state)
+          CountdownText(state: state, isStale: context.isStale)
             .font(.system(size: 30, weight: .semibold, design: .rounded))
             .foregroundStyle(state.tint)
             .lineLimit(1)
@@ -103,7 +108,7 @@ struct PomoskyTimerLiveActivity: Widget {
       } compactLeading: {
         Image(systemName: state.symbol).foregroundStyle(state.tint)
       } compactTrailing: {
-        CountdownText(state: state)
+        CountdownText(state: state, isStale: context.isStale)
           .frame(maxWidth: 52)
           .foregroundStyle(state.tint)
       } minimal: {
