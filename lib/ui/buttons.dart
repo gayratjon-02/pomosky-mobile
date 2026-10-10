@@ -12,11 +12,15 @@ class PrimaryButton extends StatelessWidget {
     required this.onPressed,
     this.icon,
     this.busy = false,
+    this.compact = false,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final IconData? icon;
+
+  /// A shorter pill, for panels on very small screens.
+  final bool compact;
 
   /// Shows a spinner instead of the label and ignores taps.
   final bool busy;
@@ -27,6 +31,7 @@ class PrimaryButton extends StatelessWidget {
     return _Pill(
       enabled: enabled,
       onTap: onPressed,
+      height: compact ? 46 : 54,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,

@@ -56,6 +56,9 @@ class _HostControlsState extends State<HostControls> {
   @override
   Widget build(BuildContext context) {
     final a = widget.actions;
+    // Very short screens (a 568-point phone) cannot show the full panel under
+    // the ring, so the captions move inline and the buttons get shorter.
+    final compact = MediaQuery.sizeOf(context).height < 620;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: Gap.l),
       // A touch of night under the glass: on a bright daytime sky the panel
@@ -78,7 +81,7 @@ class _HostControlsState extends State<HostControls> {
                 duration: Motion.normal,
                 curve: Motion.curve,
                 alignment: Alignment.topCenter,
-                child: a.canStart ? _setup() : _running(a),
+                child: a.canStart ? _setup(compact) : _running(a, compact),
               ),
             ],
           ),
@@ -87,29 +90,38 @@ class _HostControlsState extends State<HostControls> {
     );
   }
 
-  Widget _setup() {
+  Widget _setup(bool compact) {
+    final focus = PillSegments<int>(
+      options: _focusMinutes,
+      selected: _focus,
+      labelOf: (m) => '$m',
+      onChanged: (m) => setState(() => _focus = m),
+    );
+    final rest = PillSegments<int>(
+      options: _breakMinutes,
+      selected: _break,
+      labelOf: (m) => '$m',
+      onChanged: (m) => setState(() => _break = m),
+    );
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _Caption('Focus'),
-        const SizedBox(height: Gap.s),
-        PillSegments<int>(
-          options: _focusMinutes,
-          selected: _focus,
-          labelOf: (m) => '$m',
-          onChanged: (m) => setState(() => _focus = m),
-        ),
-        const SizedBox(height: Gap.m),
-        _Caption('Break'),
-        const SizedBox(height: Gap.s),
-        PillSegments<int>(
-          options: _breakMinutes,
-          selected: _break,
-          labelOf: (m) => '$m',
-          onChanged: (m) => setState(() => _break = m),
-        ),
-        const SizedBox(height: Gap.l),
+        if (compact) ...[
+          _InlineRow(caption: 'Focus', child: focus),
+          const SizedBox(height: Gap.s),
+          _InlineRow(caption: 'Break', child: rest),
+          const SizedBox(height: Gap.s),
+        ] else ...[
+          _Caption('Focus'),
+          const SizedBox(height: Gap.s),
+          focus,
+          const SizedBox(height: Gap.m),
+          _Caption('Break'),
+          const SizedBox(height: Gap.s),
+          rest,
+          const SizedBox(height: Gap.l),
+        ],
         TextField(
           controller: _label,
           maxLength: 60,
@@ -119,14 +131,16 @@ class _HostControlsState extends State<HostControls> {
             counterText: '',
           ),
         ),
-        const SizedBox(height: Gap.l),
+        SizedBox(height: compact ? Gap.s : Gap.l),
         _Pair(
           first: PrimaryButton(
             label: 'Start focus',
+            compact: compact,
             onPressed: () => _start(true),
           ),
           second: GlassButton(
             label: 'Start break',
+            compact: compact,
             onPressed: () => _start(false),
           ),
         ),
@@ -134,17 +148,19 @@ class _HostControlsState extends State<HostControls> {
     );
   }
 
-  Widget _running(HostActions a) {
+  Widget _running(HostActions a, bool compact) {
     return _Pair(
       first: a.canResume
           ? PrimaryButton(
               label: 'Resume',
+              compact: compact,
               icon: Icons.play_arrow_rounded,
               onPressed: widget.onResume,
             )
           : a.canPause
           ? GlassButton(
               label: 'Pause',
+              compact: compact,
               icon: Icons.pause_rounded,
               onPressed: widget.onPause,
             )
@@ -152,6 +168,7 @@ class _HostControlsState extends State<HostControls> {
       second: a.canReset
           ? GlassButton(
               label: 'Reset',
+              compact: compact,
               icon: Icons.replay_rounded,
               onPressed: widget.onReset,
             )
@@ -193,6 +210,32 @@ class _Pair extends StatelessWidget {
         buttons[0],
         const SizedBox(height: Gap.s),
         buttons[1],
+      ],
+    );
+  }
+}
+
+/// A caption and its control on one line, to save height on short screens.
+class _InlineRow extends StatelessWidget {
+  const _InlineRow({required this.caption, required this.child});
+
+  final String caption;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 52,
+          child: Text(
+            caption,
+            style: Theme.of(
+              context,
+            ).textTheme.labelMedium?.copyWith(color: Tint.creamDim),
+          ),
+        ),
+        Expanded(child: child),
       ],
     );
   }
