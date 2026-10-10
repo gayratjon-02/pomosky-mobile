@@ -142,3 +142,14 @@ Color horizonColor(double sunElevationDeg, double depth) {
   final sky = skyGradient(sunElevationDeg).bottom;
   return mix(sky, const Color(0xFF05070F), 0.6 + 0.3 * depth);
 }
+
+/// The shaded underside of clouds.
+Color cloudShade(double sunElevationDeg, double overcast) {
+  final lit = cloudLit(sunElevationDeg);
+  final dark = desaturate(mix(lit, const Color(0xFF1C2440), 0.55), 0.35);
+  return mix(
+    mix(lit, dark, 0.45),
+    mix(dark, const Color(0xFF0E1426), 0.35),
+    overcast,
+  );
+}
