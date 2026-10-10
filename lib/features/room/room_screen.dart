@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../data/room_api.dart';
+import '../../data/weather_api.dart';
 import '../../data/ws/room_transport.dart';
 import '../../domain/timer_math.dart';
 import '../../domain/timer_view.dart';
@@ -75,6 +76,7 @@ class _RoomView extends ConsumerWidget {
     final session = ref.watch(roomSessionProvider(roomId));
     final state = ref.watch(roomStateProvider(roomId));
     ref.watch(tickProvider); // repaint the countdown
+    final weather = ref.watch(weatherProvider(roomId)).value;
     final nowMs = session.serverNowMs();
     final remaining = remainingMs(state.timer, nowMs);
 
@@ -92,7 +94,7 @@ class _RoomView extends ConsumerWidget {
         actions: [_Viewers(count: state.viewers)],
       ),
       body: SkyBackground(
-        inputs: _skyFor(state, DateTime.now()),
+        inputs: _skyFor(state, weather, DateTime.now()),
         child: SafeArea(
           child: Column(
             children: [
@@ -120,11 +122,22 @@ class _RoomView extends ConsumerWidget {
 
 /// The sky above the host's place. Until the host sets one, the longitude is
 /// guessed from the phone's time zone so day and night still look right.
-SkyInputs _skyFor(RoomState state, DateTime now) {
+SkyInputs _skyFor(RoomState state, WeatherData? weather, DateTime now) {
   final place = state.location;
-  if (place != null) return SkyInputs.forPlace(now, place.lat, place.lon);
   final lon = now.timeZoneOffset.inMinutes / 60 * 15;
-  return SkyInputs.forPlace(now, 35, lon);
+  final base = place != null
+      ? SkyInputs.forPlace(now, place.lat, place.lon)
+      : SkyInputs.forPlace(now, 35, lon);
+  if (weather == null) return base;
+  return base.withWeather(
+    cloudCoverPct: weather.cloudCoverPct,
+    precipitationMmh: weather.precipitationMmh,
+    snowfallCmh: weather.snowfallCmh,
+    windSpeedKmh: weather.windSpeedKmh,
+    windDirDeg: weather.windDirDeg,
+    fogDensity: weather.fogDensity,
+    thunder: weather.thunder,
+  );
 }
 
 class _ConnectionBanner extends StatelessWidget {
