@@ -137,6 +137,9 @@ class RoomSession {
     ),
   );
 
+  /// Tells the room the name to show for this phone.
+  void join(String nickname) => _transport.send(ClientMessages.join(nickname));
+
   void pause() => _transport.send(ClientMessages.timerPause());
 
   void resume() => _transport.send(ClientMessages.timerResume());

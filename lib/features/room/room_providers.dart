@@ -12,6 +12,7 @@ import '../../data/signal_player.dart';
 import '../../data/weather_api.dart';
 import '../../data/ws/room_socket.dart';
 import '../../data/ws/room_transport.dart';
+import '../../domain/nickname.dart';
 import '../../domain/phase_end.dart';
 import '../../domain/timer_view.dart';
 import 'place_picker.dart';
@@ -41,9 +42,13 @@ final roomTransportFactoryProvider =
           (roomId, hostToken) => RoomSocket(
             url: roomSocketUrl(roomId),
             origin: originOf(),
-            handshake: () => [
-              if (hostToken != null) ClientMessages.hostAuth(hostToken),
-            ],
+            handshake: () {
+              final nickname = nicknameToSend(ref.read(nicknameProvider));
+              return [
+                if (hostToken != null) ClientMessages.hostAuth(hostToken),
+                if (nickname != null) ClientMessages.join(nickname),
+              ];
+            },
           ),
     );
 
@@ -135,6 +140,21 @@ class SoundEnabledNotifier extends Notifier<bool> {
 /// Whether the end-of-phase signal plays a sound.
 final soundEnabledProvider = NotifierProvider<SoundEnabledNotifier, bool>(
   SoundEnabledNotifier.new,
+);
+
+class NicknameNotifier extends Notifier<String> {
+  @override
+  String build() => ref.watch(appSettingsProvider).nickname;
+
+  Future<void> set(String value) async {
+    state = value.trim();
+    await ref.read(appSettingsProvider).setNickname(state);
+  }
+}
+
+/// The name shown to the others in a room; empty means anonymous.
+final nicknameProvider = NotifierProvider<NicknameNotifier, String>(
+  NicknameNotifier.new,
 );
 
 /// Rings and vibrates at the end of a phase. Silent unless the app overrides it.
