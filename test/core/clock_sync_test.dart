@@ -33,4 +33,15 @@ void main() {
     expect(c.sampleCount, 3);
     expect(c.offsetMs, 50);
   });
+
+  test('a seed stands in until the first real sample, then is forgotten', () {
+    final c = ClockSync()..seed(500);
+    expect(c.offsetMs, 500);
+    expect(c.sampleCount, 0);
+
+    c.add(100);
+    expect(c.offsetMs, 100); // the seed no longer counts
+    c.seed(900); // ignored once real samples exist
+    expect(c.offsetMs, 100);
+  });
 }
