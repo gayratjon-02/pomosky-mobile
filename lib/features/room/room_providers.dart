@@ -5,12 +5,14 @@ import '../../data/host_tokens.dart';
 import '../../data/protocol/client_messages.dart';
 import '../../data/places_api.dart';
 import '../../data/room_api.dart';
+import '../../data/screen_awake.dart';
 import '../../data/settings.dart';
 import '../../data/signal_player.dart';
 import '../../data/weather_api.dart';
 import '../../data/ws/room_socket.dart';
 import '../../data/ws/room_transport.dart';
 import '../../domain/phase_end.dart';
+import '../../domain/timer_view.dart';
 import 'place_picker.dart';
 import 'room_session.dart';
 import 'room_state.dart';
@@ -148,6 +150,26 @@ final phaseEndWatcherProvider = Provider.autoDispose
       ); // leaving the room silences a ring in progress
       return PhaseEndWatcher();
     });
+
+/// Keeps the screen awake. Silent unless the app overrides it.
+final screenAwakeProvider = Provider<ScreenAwake>((ref) => NoScreenAwake());
+
+/// Keeps the screen on while a phase is running in this room, and lets it
+/// sleep again when the phase stops or the room is left.
+final screenAwakeSyncProvider = Provider.autoDispose.family<void, String>((
+  ref,
+  roomId,
+) {
+  final awake = ref.watch(screenAwakeProvider);
+  void apply(RoomState state) {
+    final running =
+        state.timer.phase == Phase.focus || state.timer.phase == Phase.break_;
+    awake.set(running);
+  }
+
+  ref.listen(roomStateProvider(roomId), (_, next) => apply(next));
+  ref.onDispose(() => awake.set(false));
+});
 
 /// Fires several times a second so countdowns repaint.
 final tickProvider = StreamProvider.autoDispose<int>(

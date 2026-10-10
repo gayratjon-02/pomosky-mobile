@@ -84,6 +84,7 @@ class _RoomView extends ConsumerWidget {
     final state = ref.watch(roomStateProvider(roomId));
     ref.watch(tickProvider); // repaint the countdown
     final weather = ref.watch(weatherProvider(roomId)).value;
+    ref.watch(screenAwakeSyncProvider(roomId));
     final soundOn = ref.watch(soundEnabledProvider);
     final watcher = ref.watch(phaseEndWatcherProvider(roomId));
     ref.listen(tickProvider, (_, _) {
