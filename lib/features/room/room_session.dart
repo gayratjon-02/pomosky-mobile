@@ -54,7 +54,14 @@ class RoomSession {
   void reconnect() => _transport.reconnect();
 
   void _onStatus(SocketStatus s) {
-    _emit(_state.copyWith(connection: s));
+    // Host rights belong to one connection: they are gone with it, and come
+    // back when the handshake authenticates the next one.
+    _emit(
+      _state.copyWith(
+        connection: s,
+        isHost: s == SocketStatus.connected ? _state.isHost : false,
+      ),
+    );
     _cancelPings();
     if (s == SocketStatus.connected) _startPings();
   }
@@ -122,7 +129,16 @@ class RoomSession {
           }
         }
       case ErrorMessage():
-        _emit(_state.copyWith(error: m));
+        // A refusal with "forbidden" to a connection that never became the host
+        // means the host token we hold was not accepted.
+        _emit(
+          _state.copyWith(
+            error: m,
+            hostRejected:
+                _state.hostRejected ||
+                (m.code == 'forbidden' && !_state.isHost),
+          ),
+        );
       case UnknownMessage():
         break;
     }

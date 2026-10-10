@@ -18,6 +18,7 @@ class RoomState {
     this.error,
     this.joined = false,
     this.clockEpoch = 0,
+    this.hostRejected = false,
   });
 
   final SocketStatus connection;
@@ -40,6 +41,10 @@ class RoomState {
   /// things derived from it (the lock screen countdown) can be recomputed.
   final int clockEpoch;
 
+  /// True when the server refused a host command from a connection that is
+  /// not the host: the stored host token is no longer valid.
+  final bool hostRejected;
+
   RoomState copyWith({
     SocketStatus? connection,
     TimerView? timer,
@@ -54,6 +59,7 @@ class RoomState {
     bool clearError = false,
     bool? joined,
     int? clockEpoch,
+    bool? hostRejected,
   }) => RoomState(
     connection: connection ?? this.connection,
     timer: timer ?? this.timer,
@@ -67,5 +73,6 @@ class RoomState {
     error: clearError ? null : (error ?? this.error),
     joined: joined ?? this.joined,
     clockEpoch: clockEpoch ?? this.clockEpoch,
+    hostRejected: hostRejected ?? this.hostRejected,
   );
 }

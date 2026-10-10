@@ -186,4 +186,38 @@ void main() {
       expect(s.state.clockEpoch, greaterThan(0));
     });
   });
+
+  test('host rights end with the connection and return with host.ok', () {
+    final t = FakeTransport();
+    final s = RoomSession(transport: t, nowMs: () => 0)..start();
+    t.setStatus(SocketStatus.connected);
+    t.receive(const HostOkMessage());
+    expect(s.state.isHost, isTrue);
+
+    t.setStatus(SocketStatus.reconnecting);
+    expect(s.state.isHost, isFalse);
+
+    t.setStatus(SocketStatus.connected);
+    expect(s.state.isHost, isFalse); // not until the server confirms again
+    t.receive(const HostOkMessage());
+    expect(s.state.isHost, isTrue);
+  });
+
+  test('forbidden to a connection that is not the host rejects the token', () {
+    final t = FakeTransport();
+    final s = RoomSession(transport: t, nowMs: () => 0)..start();
+    t.setStatus(SocketStatus.connected);
+    t.receive(const ErrorMessage(code: 'forbidden', message: 'bad token'));
+    expect(s.state.hostRejected, isTrue);
+  });
+
+  test('forbidden to the confirmed host is just an error', () {
+    final t = FakeTransport();
+    final s = RoomSession(transport: t, nowMs: () => 0)..start();
+    t.setStatus(SocketStatus.connected);
+    t.receive(const HostOkMessage());
+    t.receive(const ErrorMessage(code: 'forbidden', message: 'nope'));
+    expect(s.state.hostRejected, isFalse);
+    expect(s.state.error?.code, 'forbidden');
+  });
 }
