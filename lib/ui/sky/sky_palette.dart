@@ -135,3 +135,10 @@ Color cloudLit(double sunElevationDeg) {
   final toDay = smoothstep(2, 22, sunElevationDeg);
   return mix(mix(night, twilight, toTwilight), day, toDay);
 }
+
+/// The horizon silhouette (hills), tinted by the sky above it; [depth] is 0 at
+/// the back and 1 at the front.
+Color horizonColor(double sunElevationDeg, double depth) {
+  final sky = skyGradient(sunElevationDeg).bottom;
+  return mix(sky, const Color(0xFF05070F), 0.6 + 0.3 * depth);
+}
