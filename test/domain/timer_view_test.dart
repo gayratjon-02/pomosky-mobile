@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pomosky_mobile/data/protocol/timer_view.dart';
+import 'package:pomosky_mobile/domain/timer_view.dart';
 
 void main() {
   test('decodes a running focus timer', () {

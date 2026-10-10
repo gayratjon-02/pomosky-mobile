@@ -1,4 +1,4 @@
-import 'timer_view.dart';
+import '../../domain/timer_view.dart';
 
 /// The host's rounded place (about 1 km), absent until the host sets one.
 class LocationView {

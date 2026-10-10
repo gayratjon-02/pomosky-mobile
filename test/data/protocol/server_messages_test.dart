@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pomosky_mobile/data/protocol/server_messages.dart';
-import 'package:pomosky_mobile/data/protocol/timer_view.dart';
+import 'package:pomosky_mobile/domain/timer_view.dart';
 
 ServerMessage decode(String frame) =>
     ServerMessage.fromJson(jsonDecode(frame) as Map<String, dynamic>);
