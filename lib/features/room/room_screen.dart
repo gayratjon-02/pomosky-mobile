@@ -5,11 +5,13 @@ import 'package:go_router/go_router.dart';
 import '../../data/room_api.dart';
 import '../../data/weather_api.dart';
 import '../../data/ws/room_transport.dart';
+import '../../domain/host_actions.dart';
 import '../../domain/timer_math.dart';
 import '../../domain/timer_view.dart';
 import '../../ui/sky/sky_background.dart';
 import '../../ui/sky/sky_inputs.dart';
 import '../../ui/timer_ring.dart';
+import 'host_controls.dart';
 import 'room_providers.dart';
 import 'room_state.dart';
 
@@ -112,6 +114,20 @@ class _RoomView extends ConsumerWidget {
                 ),
               ),
               _People(state: state),
+              if (state.isHost) ...[
+                HostControls(
+                  actions: hostActionsFor(state.timer, remaining),
+                  onStart: (focus, durationMs, label) => session.startTimer(
+                    focus: focus,
+                    durationMs: durationMs,
+                    label: label,
+                  ),
+                  onPause: session.pause,
+                  onResume: session.resume,
+                  onReset: session.reset,
+                ),
+                const SizedBox(height: 8),
+              ],
               _ReactionBar(state: state, onReact: session.react),
               const SizedBox(height: 16),
             ],

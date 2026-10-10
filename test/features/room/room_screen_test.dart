@@ -205,4 +205,28 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
   });
+
+  testWidgets('host controls appear only after the server confirms the host', (
+    tester,
+  ) async {
+    final t = await _pump(tester);
+    t.connected();
+    await tester.pump();
+    await tester.pump();
+    expect(find.textContaining('Start focus'), findsNothing);
+
+    t.msgs.add(const HostOkMessage());
+    await tester.pump();
+    await tester.pump();
+    expect(find.textContaining('Start focus'), findsOneWidget);
+
+    await tester.tap(find.textContaining('Start focus'));
+    await tester.pump();
+    expect(
+      t.sent.any((f) => f.contains('timer.start') && f.contains('"focus"')),
+      isTrue,
+    );
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+  });
 }
