@@ -23,4 +23,15 @@ void main() {
     );
     expect(originOf(base: 'http://localhost:8080'), 'http://localhost:8080');
   });
+
+  test('the room link is the page people open', () {
+    expect(
+      roomLink('abcd2345', base: 'https://pomosky.example'),
+      'https://pomosky.example/r/abcd2345',
+    );
+    expect(
+      roomLink('abcd2345', base: 'http://localhost:8080/ignored'),
+      'http://localhost:8080/r/abcd2345',
+    );
+  });
 }

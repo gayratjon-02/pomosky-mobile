@@ -26,3 +26,7 @@ String originOf({String base = baseUrl}) {
     port: uri.hasPort ? uri.port : null,
   ).toString();
 }
+
+/// The public link of a room, what people share and open in a browser.
+String roomLink(String roomId, {String base = baseUrl}) =>
+    Uri.parse(base).replace(path: '/r/$roomId').toString();
