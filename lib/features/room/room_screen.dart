@@ -28,6 +28,12 @@ import 'room_providers.dart';
 import 'room_session.dart';
 import 'room_state.dart';
 
+/// A faint shadow under small text that sits straight on the sky, so it
+/// holds on a pale afternoon sky as well as at night.
+final _skyTextShadow = [
+  Shadow(color: Night.background.withValues(alpha: 0.5), blurRadius: 8),
+];
+
 const _reactions = {'clap': '👏', 'coffee': '☕', 'fire': '🔥', 'heart': '❤️'};
 
 /// Checks that the room exists, then shows it.
@@ -327,13 +333,7 @@ class _WeatherLine extends StatelessWidget {
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
           color: Tint.creamDim,
           fontWeight: FontWeight.w500,
-          // A faint shadow, so the line holds on a pale afternoon sky.
-          shadows: [
-            Shadow(
-              color: Night.background.withValues(alpha: 0.5),
-              blurRadius: 8,
-            ),
-          ],
+          shadows: _skyTextShadow,
         ),
       ),
     );
@@ -404,7 +404,7 @@ class _Viewers extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: Gap.xs),
         padding: const EdgeInsets.symmetric(horizontal: Gap.s + 2, vertical: 5),
         decoration: BoxDecoration(
-          color: Glass.fill,
+          color: Night.background.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(Radii.pill),
           border: Border.all(color: Glass.edge),
         ),
@@ -512,6 +512,7 @@ class _TimerFace extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: Tint.creamDim,
+                    shadows: _skyTextShadow,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -567,9 +568,10 @@ class _People extends StatelessWidget {
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: Tint.creamDim),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Tint.creamDim,
+              shadows: _skyTextShadow,
+            ),
           ),
         ],
       ),
