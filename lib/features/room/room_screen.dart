@@ -203,7 +203,9 @@ class _RoomView extends ConsumerWidget {
                             timer: state.timer,
                             remainingMs: remaining,
                             fraction: remainingFraction(state.timer, nowMs),
-                            size: (box.maxHeight * 0.36).clamp(180.0, 300.0),
+                            size: box.maxHeight < 560
+                                ? (box.maxHeight * 0.30).clamp(120.0, 300.0)
+                                : (box.maxHeight * 0.36).clamp(180.0, 300.0),
                           ),
                         ),
                       ),
@@ -489,7 +491,14 @@ class _TimerFace extends StatelessWidget {
                 color: color,
                 letterSpacing: 1.2,
               ),
-              child: Text(_phaseLabel),
+              // The longest label must stay inside a small ring.
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: size * 0.7),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(_phaseLabel),
+                ),
+              ),
             ),
             const SizedBox(height: Gap.s),
             Semantics(
