@@ -229,4 +229,31 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
   });
+
+  testWidgets('a small phone shows the whole host screen without overflow', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320 * 3, 568 * 3); // iPhone SE
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+
+    final t = await _pump(tester);
+    t.connected();
+    t.msgs.add(const HostOkMessage());
+    await tester.pump();
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(find.textContaining('Start focus'), findsOneWidget);
+    // Whatever does not fit is reachable by scrolling.
+    await tester.drag(
+      find.byType(SingleChildScrollView),
+      const Offset(0, -400),
+    );
+    await tester.pump();
+    expect(find.text('Start break'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+  });
 }
