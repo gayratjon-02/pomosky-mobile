@@ -6,6 +6,8 @@ import '../../data/room_api.dart';
 import '../../data/ws/room_transport.dart';
 import '../../domain/timer_math.dart';
 import '../../domain/timer_view.dart';
+import '../../ui/sky/sky_background.dart';
+import '../../ui/sky/sky_inputs.dart';
 import '../../ui/timer_ring.dart';
 import 'room_providers.dart';
 import 'room_state.dart';
@@ -77,7 +79,10 @@ class _RoomView extends ConsumerWidget {
     final remaining = remainingMs(state.timer, nowMs);
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         leading: IconButton(
           tooltip: 'Leave room',
           icon: const Icon(Icons.close),
@@ -86,28 +91,40 @@ class _RoomView extends ConsumerWidget {
         title: Text(state.city.isEmpty ? 'Pomosky' : state.city),
         actions: [_Viewers(count: state.viewers)],
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            if (state.connection != SocketStatus.connected)
-              _ConnectionBanner(status: state.connection),
-            Expanded(
-              child: Center(
-                child: _TimerFace(
-                  timer: state.timer,
-                  remainingMs: remaining,
-                  fraction: remainingFraction(state.timer, nowMs),
+      body: SkyBackground(
+        inputs: _skyFor(state, DateTime.now()),
+        child: SafeArea(
+          child: Column(
+            children: [
+              if (state.connection != SocketStatus.connected)
+                _ConnectionBanner(status: state.connection),
+              Expanded(
+                child: Center(
+                  child: _TimerFace(
+                    timer: state.timer,
+                    remainingMs: remaining,
+                    fraction: remainingFraction(state.timer, nowMs),
+                  ),
                 ),
               ),
-            ),
-            _People(state: state),
-            _ReactionBar(state: state, onReact: session.react),
-            const SizedBox(height: 16),
-          ],
+              _People(state: state),
+              _ReactionBar(state: state, onReact: session.react),
+              const SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
     );
   }
+}
+
+/// The sky above the host's place. Until the host sets one, the longitude is
+/// guessed from the phone's time zone so day and night still look right.
+SkyInputs _skyFor(RoomState state, DateTime now) {
+  final place = state.location;
+  if (place != null) return SkyInputs.forPlace(now, place.lat, place.lon);
+  final lon = now.timeZoneOffset.inMinutes / 60 * 15;
+  return SkyInputs.forPlace(now, 35, lon);
 }
 
 class _ConnectionBanner extends StatelessWidget {
