@@ -237,9 +237,10 @@ class PillSegments<T> extends StatelessWidget {
                     child: Text(
                       labelOf(option),
                       style: style?.copyWith(
-                        color: option == selected
-                            ? Tint.apricot
-                            : Tint.creamDim,
+                        color: option == selected ? Tint.cream : Tint.creamDim,
+                        fontWeight: option == selected
+                            ? FontWeight.w700
+                            : FontWeight.w500,
                         fontSize: 15,
                       ),
                     ),
