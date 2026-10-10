@@ -1,4 +1,4 @@
-/// Server clock synchronisation: serverTime ~= clientTime + offset.
+// Server clock synchronisation: serverTime ~= clientTime + offset.
 
 /// Estimates the offset from one ping/pong round trip.
 double estimateOffset({
