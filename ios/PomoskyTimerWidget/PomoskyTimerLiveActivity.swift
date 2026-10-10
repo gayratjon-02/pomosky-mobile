@@ -79,6 +79,43 @@ struct LockScreenView: View {
   }
 }
 
+/// The three parts of the expanded Dynamic Island, as views of their own so
+/// they can also be drawn outside the system island for checking.
+struct ExpandedLeading: View {
+  let state: PomoskyTimerAttributes.ContentState
+
+  var body: some View {
+    Label(state.title, systemImage: state.symbol)
+      .font(.headline)
+      .foregroundStyle(state.tint)
+  }
+}
+
+struct ExpandedTrailing: View {
+  let state: PomoskyTimerAttributes.ContentState
+  var isStale = false
+
+  var body: some View {
+    CountdownText(state: state, isStale: isStale)
+      .font(.system(size: 30, weight: .semibold, design: .rounded))
+      .foregroundStyle(state.tint)
+      .lineLimit(1)
+      .minimumScaleFactor(0.6)
+      .multilineTextAlignment(.trailing)
+      .frame(width: 120, alignment: .trailing)
+  }
+}
+
+struct ExpandedBottom: View {
+  let state: PomoskyTimerAttributes.ContentState
+
+  var body: some View {
+    if !state.label.isEmpty {
+      Text(state.label).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
+    }
+  }
+}
+
 struct PomoskyTimerLiveActivity: Widget {
   var body: some WidgetConfiguration {
     ActivityConfiguration(for: PomoskyTimerAttributes.self) { context in
@@ -87,23 +124,13 @@ struct PomoskyTimerLiveActivity: Widget {
       let state = context.state
       return DynamicIsland {
         DynamicIslandExpandedRegion(.leading) {
-          Label(state.title, systemImage: state.symbol)
-            .font(.headline)
-            .foregroundStyle(state.tint)
+          ExpandedLeading(state: state)
         }
         DynamicIslandExpandedRegion(.trailing) {
-          CountdownText(state: state, isStale: context.isStale)
-            .font(.system(size: 30, weight: .semibold, design: .rounded))
-            .foregroundStyle(state.tint)
-            .lineLimit(1)
-            .minimumScaleFactor(0.6)
-            .multilineTextAlignment(.trailing)
-            .frame(width: 120, alignment: .trailing)
+          ExpandedTrailing(state: state, isStale: context.isStale)
         }
         DynamicIslandExpandedRegion(.bottom) {
-          if !state.label.isEmpty {
-            Text(state.label).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
-          }
+          ExpandedBottom(state: state)
         }
       } compactLeading: {
         Image(systemName: state.symbol).foregroundStyle(state.tint)
