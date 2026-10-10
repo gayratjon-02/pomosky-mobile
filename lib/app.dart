@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'features/home/home_screen.dart';
+import 'features/lab/sky_lab_screen.dart';
 import 'features/room/room_screen.dart';
 import 'ui/theme.dart';
 
@@ -16,6 +18,14 @@ GoRouter _buildRouter() => GoRouter(
   initialLocation: _initialRoute,
   routes: [
     GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
+    if (kDebugMode)
+      GoRoute(
+        path: '/sky-lab',
+        builder: (context, state) => SkyLabScreen(
+          initial: state.uri.queryParameters['preset'],
+          autoCycle: state.uri.queryParameters['auto'] == '1',
+        ),
+      ),
     GoRoute(
       path: '/r/:id',
       builder: (context, state) =>
