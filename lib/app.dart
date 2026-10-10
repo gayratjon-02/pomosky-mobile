@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'features/home/home_screen.dart';
 import 'ui/theme.dart';
 
 final _router = GoRouter(
-  routes: [
-    GoRoute(path: '/', builder: (context, state) => const _HomePlaceholder()),
-  ],
+  routes: [GoRoute(path: '/', builder: (context, state) => const HomeScreen())],
 );
 
 class PomoskyApp extends StatelessWidget {
@@ -19,14 +18,5 @@ class PomoskyApp extends StatelessWidget {
       theme: pomoskyTheme(),
       routerConfig: _router,
     );
-  }
-}
-
-class _HomePlaceholder extends StatelessWidget {
-  const _HomePlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: Text('Pomosky')));
   }
 }
