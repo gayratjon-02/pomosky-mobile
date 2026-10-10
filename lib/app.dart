@@ -6,7 +6,14 @@ import 'features/room/room_screen.dart';
 import 'ui/theme.dart';
 
 final _router = GoRouter(
-  routes: [GoRoute(path: '/', builder: (context, state) => const HomeScreen())],
+  routes: [
+    GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
+    GoRoute(
+      path: '/r/:id',
+      builder: (context, state) =>
+          RoomScreen(roomId: state.pathParameters['id']!),
+    ),
+  ],
 );
 
 class PomoskyApp extends StatelessWidget {
