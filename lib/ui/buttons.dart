@@ -227,8 +227,10 @@ class PillSegments<T> extends StatelessWidget {
                     height: 38,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
+                      // A lighter wash, not a tinted one: apricot at low alpha
+                      // turns muddy brown over dark glass.
                       color: option == selected
-                          ? Tint.apricot.withValues(alpha: 0.24)
+                          ? const Color(0x33FFFFFF)
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(Radii.pill),
                     ),
