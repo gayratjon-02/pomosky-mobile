@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'features/home/home_screen.dart';
+import 'features/room/room_screen.dart';
 import 'ui/theme.dart';
 
 final _router = GoRouter(
