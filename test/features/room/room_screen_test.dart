@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pomosky_mobile/data/host_tokens.dart';
 import 'package:pomosky_mobile/data/protocol/server_messages.dart';
 import 'package:pomosky_mobile/data/room_api.dart';
+import 'package:pomosky_mobile/data/weather_api.dart';
 import 'package:pomosky_mobile/data/ws/room_transport.dart';
 import 'package:pomosky_mobile/domain/timer_view.dart';
 import 'package:pomosky_mobile/features/room/room_providers.dart';
@@ -255,6 +256,53 @@ void main() {
     await tester.pump();
     expect(find.text('Start break'), findsOneWidget);
 
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('shows the weather and says how old it is', (tester) async {
+    final t = _Transport();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          hostTokenStoreProvider.overrideWithValue(MemoryHostTokenStore()),
+          roomTransportFactoryProvider.overrideWithValue((_, _) => t),
+          roomLookupProvider.overrideWith((ref, id) => RoomLookup.found),
+          nowMsProvider.overrideWithValue(() => 10 * 60 * 1000),
+          tickProvider.overrideWith((ref) => const Stream<int>.empty()),
+          weatherProvider.overrideWith(
+            (ref, id) => Stream.value(
+              const WeatherData(
+                cloudCoverPct: 60,
+                precipitationMmh: 0,
+                snowfallCmh: 0,
+                windSpeedKmh: 5,
+                windDirDeg: 270,
+                fogDensity: 0,
+                thunder: false,
+                temperatureC: 17.6,
+                observedAtMs: 6 * 60 * 1000, // read 4 minutes ago
+              ),
+            ),
+          ),
+        ],
+        child: MaterialApp.router(
+          routerConfig: GoRouter(
+            routes: [
+              GoRoute(
+                path: '/',
+                builder: (_, _) => const RoomScreen(roomId: 'abcd2345'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('18° · Cloudy · updated 4 min ago'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
   });

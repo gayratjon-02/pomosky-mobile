@@ -8,6 +8,7 @@ import '../../data/weather_api.dart';
 import '../../data/ws/room_transport.dart';
 import '../../domain/host_actions.dart';
 import '../../domain/timer_math.dart';
+import '../../domain/weather_text.dart';
 import '../../domain/timer_view.dart';
 import '../../ui/sky/sky_background.dart';
 import '../../ui/sky/sky_inputs.dart';
@@ -124,8 +125,10 @@ class _RoomView extends ConsumerWidget {
       body: SkyBackground(
         inputs: _skyFor(state, weather, DateTime.now()),
         child: SafeArea(
+          // The app bar floats over the sky, so the content starts below it.
           // Scrolls only when the screen is too short for everything (small
           // phones, large text); otherwise the column fills the screen.
+          minimum: const EdgeInsets.only(top: kToolbarHeight),
           child: LayoutBuilder(
             builder: (context, box) => SingleChildScrollView(
               child: ConstrainedBox(
@@ -135,6 +138,8 @@ class _RoomView extends ConsumerWidget {
                     children: [
                       if (state.connection != SocketStatus.connected)
                         _ConnectionBanner(status: state.connection),
+                      if (weather != null)
+                        _WeatherLine(weather: weather, nowMs: nowMs),
                       Expanded(
                         child: Center(
                           child: _TimerFace(
@@ -216,6 +221,39 @@ SkyInputs _skyFor(RoomState state, WeatherData? weather, DateTime now) {
     fogDensity: weather.fogDensity,
     thunder: weather.thunder,
   );
+}
+
+class _WeatherLine extends StatelessWidget {
+  const _WeatherLine({required this.weather, required this.nowMs});
+
+  final WeatherData weather;
+  final int nowMs;
+
+  @override
+  Widget build(BuildContext context) {
+    final age = Duration(
+      milliseconds: (nowMs - weather.observedAtMs).clamp(0, 1 << 40),
+    );
+    final text = weatherLine(
+      temperatureC: weather.temperatureC,
+      description: describeWeather(
+        cloudCoverPct: weather.cloudCoverPct,
+        precipitationMmh: weather.precipitationMmh,
+        snowfallCmh: weather.snowfallCmh,
+        fogDensity: weather.fogDensity,
+        thunder: weather.thunder,
+      ),
+      age: age,
+    );
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, left: 16, right: 16),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: Theme.of(context).textTheme.bodySmall,
+      ),
+    );
+  }
 }
 
 class _ConnectionBanner extends StatelessWidget {
