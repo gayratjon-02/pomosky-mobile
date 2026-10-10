@@ -52,4 +52,35 @@ void main() {
       test('$ms ms -> $want', () => expect(formatMMSS(ms), want));
     });
   });
+
+  group('remainingFraction', () {
+    test('starts full and shrinks', () {
+      final t = running(Phase.focus, started: 0, duration: 60000);
+      expect(remainingFraction(t, 0), 1);
+      expect(remainingFraction(t, 15000), 0.75);
+      expect(remainingFraction(t, 60000), 0);
+      expect(remainingFraction(t, 90000), 0);
+    });
+
+    test('a clock slightly behind the server never exceeds 1', () {
+      final t = running(Phase.focus, started: 1000, duration: 60000);
+      expect(remainingFraction(t, 900), 1);
+    });
+
+    test('paused uses the stored remainder', () {
+      const t = TimerView(
+        phase: Phase.paused,
+        pausedFrom: Phase.focus,
+        startedAtMs: 0,
+        durationMs: 100000,
+        pausedRemainingMs: 25000,
+        label: '',
+      );
+      expect(remainingFraction(t, 999999), 0.25);
+    });
+
+    test('idle has nothing left', () {
+      expect(remainingFraction(TimerView.idle, 5), 0);
+    });
+  });
 }

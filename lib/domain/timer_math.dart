@@ -22,3 +22,11 @@ String formatMMSS(int ms) {
   final s = total % 60;
   return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
 }
+
+/// How much of the phase is left, from 1 (just started) to 0 (done). A timer
+/// without a duration, such as an idle one, has nothing left.
+double remainingFraction(TimerView t, int serverNowMs) {
+  if (t.durationMs <= 0) return 0;
+  final fraction = remainingMs(t, serverNowMs) / t.durationMs;
+  return fraction.clamp(0.0, 1.0);
+}
