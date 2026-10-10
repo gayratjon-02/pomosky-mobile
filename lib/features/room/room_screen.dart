@@ -6,6 +6,7 @@ import '../../data/room_api.dart';
 import '../../data/ws/room_transport.dart';
 import '../../domain/timer_math.dart';
 import '../../domain/timer_view.dart';
+import '../../ui/timer_ring.dart';
 import 'room_providers.dart';
 import 'room_state.dart';
 
@@ -72,7 +73,8 @@ class _RoomView extends ConsumerWidget {
     final session = ref.watch(roomSessionProvider(roomId));
     final state = ref.watch(roomStateProvider(roomId));
     ref.watch(tickProvider); // repaint the countdown
-    final remaining = remainingMs(state.timer, session.serverNowMs());
+    final nowMs = session.serverNowMs();
+    final remaining = remainingMs(state.timer, nowMs);
 
     return Scaffold(
       appBar: AppBar(
@@ -91,7 +93,11 @@ class _RoomView extends ConsumerWidget {
               _ConnectionBanner(status: state.connection),
             Expanded(
               child: Center(
-                child: _TimerFace(timer: state.timer, remainingMs: remaining),
+                child: _TimerFace(
+                  timer: state.timer,
+                  remainingMs: remaining,
+                  fraction: remainingFraction(state.timer, nowMs),
+                ),
               ),
             ),
             _People(state: state),
@@ -144,10 +150,15 @@ class _Viewers extends StatelessWidget {
 }
 
 class _TimerFace extends StatelessWidget {
-  const _TimerFace({required this.timer, required this.remainingMs});
+  const _TimerFace({
+    required this.timer,
+    required this.remainingMs,
+    required this.fraction,
+  });
 
   final TimerView timer;
   final int remainingMs;
+  final double fraction;
 
   String get _phaseLabel => switch (timer.phase) {
     Phase.focus => 'Focus',
@@ -156,29 +167,47 @@ class _TimerFace extends StatelessWidget {
     Phase.idle => 'Waiting for the host',
   };
 
+  Color _color(ColorScheme scheme) => switch (timer.phase) {
+    Phase.focus => const Color(0xFFFF8A65),
+    Phase.break_ => const Color(0xFF66D9A8),
+    Phase.paused => scheme.outline,
+    Phase.idle => scheme.outlineVariant,
+  };
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(_phaseLabel, style: theme.textTheme.titleLarge),
-        const SizedBox(height: 8),
-        Semantics(
-          label: '${formatMMSS(remainingMs)} remaining',
-          child: Text(
-            formatMMSS(remainingMs),
-            style: theme.textTheme.displayLarge?.copyWith(
-              fontSize: 88,
-              fontFeatures: const [FontFeature.tabularFigures()],
+    return TimerRing(
+      fraction: fraction,
+      color: _color(theme.colorScheme),
+      size: 300,
+      strokeWidth: 12,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(_phaseLabel, style: theme.textTheme.titleMedium),
+          const SizedBox(height: 4),
+          Semantics(
+            label: '${formatMMSS(remainingMs)} remaining',
+            child: Text(
+              formatMMSS(remainingMs),
+              style: theme.textTheme.displayLarge?.copyWith(
+                fontSize: 64,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
             ),
           ),
-        ),
-        if (timer.label.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          Text(timer.label, style: theme.textTheme.bodyLarge),
+          if (timer.label.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              timer.label,
+              style: theme.textTheme.bodyMedium,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }
