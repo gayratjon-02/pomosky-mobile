@@ -58,7 +58,7 @@ void main() {
         ),
       );
       await Future<void>.delayed(Duration.zero);
-      expect(sub.read().value?.viewers, 4);
+      expect(sub.read().viewers, 4);
 
       sub.close();
       container.dispose();

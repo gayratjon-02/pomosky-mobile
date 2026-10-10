@@ -34,14 +34,20 @@ final roomSessionProvider = Provider.autoDispose.family<RoomSession, String>((
   return session;
 });
 
-final roomStateProvider = StreamProvider.autoDispose.family<RoomState, String>((
-  ref,
-  roomId,
-) async* {
-  final session = ref.watch(roomSessionProvider(roomId));
-  yield session.state;
-  yield* session.states;
-});
+/// The session's state. It starts from the current state and follows every
+/// change, with no gap in which a message could be lost.
+class RoomStateNotifier extends AutoDisposeFamilyNotifier<RoomState, String> {
+  @override
+  RoomState build(String roomId) {
+    final session = ref.watch(roomSessionProvider(roomId));
+    final sub = session.states.listen((next) => state = next);
+    ref.onDispose(sub.cancel);
+    return session.state;
+  }
+}
+
+final roomStateProvider = NotifierProvider.autoDispose
+    .family<RoomStateNotifier, RoomState, String>(RoomStateNotifier.new);
 
 /// Fires several times a second so countdowns repaint.
 final tickProvider = StreamProvider.autoDispose<int>(
