@@ -115,7 +115,7 @@ class _HostControlsState extends State<HostControls> {
           maxLength: 60,
           textCapitalization: TextCapitalization.sentences,
           decoration: const InputDecoration(
-            hintText: 'What are you working on?',
+            hintText: 'Working on…',
             counterText: '',
           ),
         ),
