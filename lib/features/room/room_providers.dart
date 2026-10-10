@@ -102,6 +102,20 @@ final roomStateProvider = NotifierProvider.autoDispose
 /// Searches places for the host's city sheet. Tests override it.
 final placeSearchProvider = Provider<PlaceSearch>((ref) => searchPlaces);
 
+/// A host token the server no longer accepts (the room was recreated, the
+/// token was revoked) must not keep this phone pretending to be the host:
+/// forget it, so the room opens as an ordinary viewer.
+final hostRejectionProvider = Provider.autoDispose.family<void, String>((
+  ref,
+  roomId,
+) {
+  ref.listen(roomStateProvider(roomId), (previous, next) async {
+    if (!next.hostRejected || previous?.hostRejected == true) return;
+    await ref.read(hostTokenStoreProvider).delete(roomId);
+    ref.invalidate(hostTokenProvider(roomId));
+  });
+});
+
 /// Fetches the weather; tests override it.
 final weatherFetcherProvider = Provider<Future<WeatherData?> Function(String)>(
   (ref) => fetchWeather,

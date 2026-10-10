@@ -119,6 +119,34 @@ void main() {
     expect(fetches, 1);
     expect(sub.read().value?.cloudCoverPct, 80);
   });
+
+  test('a host token the server refuses is forgotten', () async {
+    final transport = _Transport();
+    final store = MemoryHostTokenStore();
+    await store.write('abcd2345', 'stale-token');
+    final container = ProviderContainer(
+      overrides: [
+        hostTokenStoreProvider.overrideWithValue(store),
+        roomTransportFactoryProvider.overrideWithValue((_, _) => transport),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    expect(
+      await container.read(hostTokenProvider('abcd2345').future),
+      'stale-token',
+    );
+    container.listen(roomStateProvider('abcd2345'), (_, _) {});
+    container.listen(hostRejectionProvider('abcd2345'), (_, _) {});
+
+    transport.msgs.add(
+      const ErrorMessage(code: 'forbidden', message: 'bad token'),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+
+    expect(await store.read('abcd2345'), isNull);
+    expect(await container.read(hostTokenProvider('abcd2345').future), isNull);
+  });
 }
 
 const _idle = TimerView.idle;
