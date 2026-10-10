@@ -29,4 +29,13 @@ void main() {
     final next = PreferencesSettings(await SharedPreferences.getInstance());
     expect(next.nickname, 'Ayla');
   });
+
+  test('remembers that notification permission was asked', () async {
+    SharedPreferences.setMockInitialValues({});
+    final first = PreferencesSettings(await SharedPreferences.getInstance());
+    expect(first.notificationsAsked, isFalse);
+    await first.setNotificationsAsked(true);
+    final next = PreferencesSettings(await SharedPreferences.getInstance());
+    expect(next.notificationsAsked, isTrue);
+  });
 }
