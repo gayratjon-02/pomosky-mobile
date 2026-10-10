@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/config.dart';
+import '../../data/room_api.dart';
 import '../../data/ws/room_socket.dart';
 import '../../data/ws/room_transport.dart';
 import 'room_session.dart';
@@ -15,6 +16,11 @@ final roomTransportFactoryProvider = Provider<RoomTransport Function(String)>(
         handshake: () => const [],
       ),
 );
+
+/// Whether the room exists; the room screen shows "not found" for a 404
+/// instead of retrying a connection that can never succeed.
+final roomLookupProvider = FutureProvider.autoDispose
+    .family<RoomLookup, String>((ref, roomId) => lookupRoom(roomId));
 
 final _nowMsProvider = Provider<int Function()>(
   (ref) =>
