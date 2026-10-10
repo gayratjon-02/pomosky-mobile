@@ -29,12 +29,14 @@ extension PomoskyTimerAttributes.ContentState {
 struct CountdownText: View {
   let state: PomoskyTimerAttributes.ContentState
 
+  private func frozen(_ seconds: Double) -> String {
+    let total = Int(max(seconds, 0).rounded(.up))
+    return String(format: "%02d:%02d", total / 60, total % 60)
+  }
+
   var body: some View {
     if state.isPaused {
-      let now = Date()
-      Text(timerInterval: now...now.addingTimeInterval(max(state.remainingSeconds, 1)),
-           pauseTime: now, countsDown: true)
-        .monospacedDigit()
+      Text(frozen(state.remainingSeconds)).monospacedDigit()
     } else {
       Text(timerInterval: Date()...max(state.endDate, Date().addingTimeInterval(1)),
            countsDown: true)
@@ -59,10 +61,12 @@ struct LockScreenView: View {
       }
       Spacer()
       CountdownText(state: state)
-        .font(.system(size: 38, weight: .semibold, design: .rounded))
+        .font(.system(size: 36, weight: .semibold, design: .rounded))
         .foregroundStyle(state.tint)
+        .lineLimit(1)
+        .minimumScaleFactor(0.6)
         .multilineTextAlignment(.trailing)
-        .frame(maxWidth: 130, alignment: .trailing)
+        .frame(width: 150, alignment: .trailing)
     }
     .padding(16)
     .activityBackgroundTint(Color.black.opacity(0.55))
@@ -86,8 +90,10 @@ struct PomoskyTimerLiveActivity: Widget {
           CountdownText(state: state)
             .font(.system(size: 30, weight: .semibold, design: .rounded))
             .foregroundStyle(state.tint)
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
             .multilineTextAlignment(.trailing)
-            .frame(maxWidth: 110, alignment: .trailing)
+            .frame(width: 120, alignment: .trailing)
         }
         DynamicIslandExpandedRegion(.bottom) {
           if !state.label.isEmpty {
