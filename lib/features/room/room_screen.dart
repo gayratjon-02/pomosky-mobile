@@ -24,12 +24,14 @@ class RoomScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final lookup = ref.watch(roomLookupProvider(roomId));
-    return switch (lookup) {
-      AsyncData(value: RoomLookup.notFound) => const _RoomNotFound(),
-      AsyncData() => _RoomView(roomId: roomId),
-      AsyncError() => _RoomView(roomId: roomId),
-      _ => const Scaffold(body: Center(child: CircularProgressIndicator())),
-    };
+    // The session must know the host token before it connects.
+    final token = ref.watch(hostTokenProvider(roomId));
+    if (lookup.isLoading || token.isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    return lookup.value == RoomLookup.notFound
+        ? const _RoomNotFound()
+        : _RoomView(roomId: roomId);
   }
 }
 

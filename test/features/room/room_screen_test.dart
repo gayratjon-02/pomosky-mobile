@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pomosky_mobile/data/host_tokens.dart';
 import 'package:pomosky_mobile/data/protocol/server_messages.dart';
 import 'package:pomosky_mobile/data/room_api.dart';
 import 'package:pomosky_mobile/data/ws/room_transport.dart';
@@ -46,7 +47,8 @@ Future<_Transport> _pump(WidgetTester tester) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        roomTransportFactoryProvider.overrideWithValue((_) => t),
+        hostTokenStoreProvider.overrideWithValue(MemoryHostTokenStore()),
+        roomTransportFactoryProvider.overrideWithValue((_, _) => t),
         roomLookupProvider.overrideWith((ref, id) => RoomLookup.found),
         // No real ticker: its periodic timer would outlive the test.
         tickProvider.overrideWith((ref) => const Stream<int>.empty()),
@@ -63,6 +65,8 @@ Future<_Transport> _pump(WidgetTester tester) async {
       ),
     ),
   );
+  await tester.pump(); // the lookup and the token resolve
+  await tester.pump();
   return t;
 }
 
@@ -139,7 +143,8 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          roomTransportFactoryProvider.overrideWithValue((_) {
+          hostTokenStoreProvider.overrideWithValue(MemoryHostTokenStore()),
+          roomTransportFactoryProvider.overrideWithValue((_, _) {
             connections++;
             return _Transport();
           }),
@@ -162,5 +167,42 @@ void main() {
 
     expect(find.text('Room not found'), findsOneWidget);
     expect(connections, 0);
+  });
+
+  testWidgets('a phone that created the room connects with its host token', (
+    tester,
+  ) async {
+    final store = MemoryHostTokenStore();
+    await store.write('abcd2345', 'secret-token');
+    String? seenToken;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          hostTokenStoreProvider.overrideWithValue(store),
+          roomTransportFactoryProvider.overrideWithValue((_, token) {
+            seenToken = token;
+            return _Transport();
+          }),
+          roomLookupProvider.overrideWith((ref, id) => RoomLookup.found),
+          tickProvider.overrideWith((ref) => const Stream<int>.empty()),
+        ],
+        child: MaterialApp.router(
+          routerConfig: GoRouter(
+            routes: [
+              GoRoute(
+                path: '/',
+                builder: (_, _) => const RoomScreen(roomId: 'abcd2345'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(seenToken, 'secret-token');
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
   });
 }

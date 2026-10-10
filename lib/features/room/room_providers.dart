@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/config.dart';
+import '../../data/host_tokens.dart';
+import '../../data/protocol/client_messages.dart';
 import '../../data/room_api.dart';
 import '../../data/weather_api.dart';
 import '../../data/ws/room_socket.dart';
@@ -8,15 +10,29 @@ import '../../data/ws/room_transport.dart';
 import 'room_session.dart';
 import 'room_state.dart';
 
-/// Builds the connection for a room. Tests override it with a fake.
-final roomTransportFactoryProvider = Provider<RoomTransport Function(String)>(
-  (ref) =>
-      (roomId) => RoomSocket(
-        url: roomSocketUrl(roomId),
-        origin: originOf(),
-        handshake: () => const [],
-      ),
+/// Where host tokens live. Tests override it with a memory store.
+final hostTokenStoreProvider = Provider<HostTokenStore>(
+  (ref) => SecureHostTokenStore(),
 );
+
+/// The host token of a room, if this phone created it.
+final hostTokenProvider = FutureProvider.autoDispose.family<String?, String>(
+  (ref, roomId) => ref.watch(hostTokenStoreProvider).read(roomId),
+);
+
+/// Builds the connection for a room; a host token adds `host.auth` to every
+/// (re)connect. Tests override it with a fake.
+final roomTransportFactoryProvider =
+    Provider<RoomTransport Function(String roomId, String? hostToken)>(
+      (ref) =>
+          (roomId, hostToken) => RoomSocket(
+            url: roomSocketUrl(roomId),
+            origin: originOf(),
+            handshake: () => [
+              if (hostToken != null) ClientMessages.hostAuth(hostToken),
+            ],
+          ),
+    );
 
 /// Whether the room exists; the room screen shows "not found" for a 404
 /// instead of retrying a connection that can never succeed.
@@ -34,7 +50,10 @@ final roomSessionProvider = Provider.autoDispose.family<RoomSession, String>((
   roomId,
 ) {
   final session = RoomSession(
-    transport: ref.watch(roomTransportFactoryProvider)(roomId),
+    transport: ref.watch(roomTransportFactoryProvider)(
+      roomId,
+      ref.watch(hostTokenProvider(roomId)).value,
+    ),
     nowMs: ref.watch(_nowMsProvider),
   )..start();
   ref.onDispose(session.dispose);

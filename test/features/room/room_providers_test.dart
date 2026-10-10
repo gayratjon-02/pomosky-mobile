@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pomosky_mobile/data/host_tokens.dart';
 import 'package:pomosky_mobile/data/protocol/server_messages.dart';
 import 'package:pomosky_mobile/data/weather_api.dart';
 import 'package:pomosky_mobile/data/ws/room_transport.dart';
@@ -36,13 +37,15 @@ void main() {
       String? askedFor;
       final container = ProviderContainer(
         overrides: [
-          roomTransportFactoryProvider.overrideWithValue((id) {
+          hostTokenStoreProvider.overrideWithValue(MemoryHostTokenStore()),
+          roomTransportFactoryProvider.overrideWithValue((id, _) {
             askedFor = id;
             return transport;
           }),
         ],
       );
 
+      await container.read(hostTokenProvider('abcd2345').future);
       final sub = container.listen(roomStateProvider('abcd2345'), (_, _) {});
       await Future<void>.delayed(Duration.zero);
       expect(askedFor, 'abcd2345');
@@ -73,7 +76,8 @@ void main() {
     var fetches = 0;
     final container = ProviderContainer(
       overrides: [
-        roomTransportFactoryProvider.overrideWithValue((_) => transport),
+        hostTokenStoreProvider.overrideWithValue(MemoryHostTokenStore()),
+        roomTransportFactoryProvider.overrideWithValue((_, _) => transport),
         weatherFetcherProvider.overrideWithValue((id) async {
           fetches++;
           return const WeatherData(
