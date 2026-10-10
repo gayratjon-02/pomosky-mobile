@@ -14,6 +14,7 @@ import '../../ui/sky/sky_background.dart';
 import '../../ui/sky/sky_inputs.dart';
 import '../../ui/timer_ring.dart';
 import 'host_controls.dart';
+import 'live_timer_providers.dart';
 import 'place_picker.dart';
 import 'room_providers.dart';
 import 'room_session.dart';
@@ -83,6 +84,7 @@ class _RoomView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(roomSessionProvider(roomId));
     final state = ref.watch(roomStateProvider(roomId));
+    ref.watch(liveTimerControllerProvider(roomId)); // lock screen countdown
     ref.watch(tickProvider); // repaint the countdown
     final weather = ref.watch(weatherProvider(roomId)).value;
     ref.watch(screenAwakeSyncProvider(roomId));

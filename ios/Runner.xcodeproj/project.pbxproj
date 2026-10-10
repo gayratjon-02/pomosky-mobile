@@ -7,16 +7,26 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		10A65624BFB7A56730DEAA69 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ED972CB82F343A4C79403695 /* Foundation.framework */; };
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
+		1ED131D1D1DA4C87418FF571 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B8C857AFF1F6AF0B5781FD9 /* SwiftUI.framework */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
+		40F668A0FA3C057151332A94 /* LiveActivityChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 301FEBC833DF2EAACF3E4AC9 /* LiveActivityChannel.swift */; };
+		55B9C8F8DD21BD2AB2DF37FF /* ActivityKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2E61E71DFCA8A4BDABEB2322 /* ActivityKit.framework */; };
+		5C55B8635EF06BB79E33666F /* PomoskyTimerAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02BAB9E7057BC13704E2FB29 /* PomoskyTimerAttributes.swift */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */; };
+		8CECEF2787B03B42158E5477 /* PomoskyTimerWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8116A396C1EE8D879786D807 /* PomoskyTimerWidgetBundle.swift */; };
+		969D10AB1072113EEB8459F5 /* PomoskyTimerWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 20E1120810A7D5D14BE47B55 /* PomoskyTimerWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
+		A7F80602330139CC29E6508E /* PomoskyTimerAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02BAB9E7057BC13704E2FB29 /* PomoskyTimerAttributes.swift */; };
 		B0F0F0A90322C36CEE4EBE9E /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2900C45067E6ADFB3962CCE2 /* Pods_RunnerTests.framework */; };
 		D8075D50E3096D7D92DAB407 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AA34976390348D41F5830CF /* Pods_Runner.framework */; };
+		E0CFAE2B2EE30568CFBFA74C /* PomoskyTimerLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92D5B223EB1A12756AEA3581 /* PomoskyTimerLiveActivity.swift */; };
+		E95504005D38CBFBFFCBA52B /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0C4D8276B95106B9147F93B6 /* WidgetKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -26,6 +36,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 97C146ED1CF9000F007C117D;
 			remoteInfo = Runner;
+		};
+		834487C18A3F15D3140980C7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C1AE0AB44422EFD45C78DF71;
+			remoteInfo = PomoskyTimerWidget;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -40,24 +57,44 @@
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AE3C7381511122A06553CF81 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				969D10AB1072113EEB8459F5 /* PomoskyTimerWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		02BAB9E7057BC13704E2FB29 /* PomoskyTimerAttributes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PomoskyTimerAttributes.swift; sourceTree = "<group>"; };
+		06CC31CA8CC1012EF691CCE8 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		0C4D8276B95106B9147F93B6 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/WidgetKit.framework; sourceTree = DEVELOPER_DIR; };
 		0DC31FD38AC77AC9B4A55A6D /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
+		20E1120810A7D5D14BE47B55 /* PomoskyTimerWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PomoskyTimerWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		2900C45067E6ADFB3962CCE2 /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		2E61E71DFCA8A4BDABEB2322 /* ActivityKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ActivityKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/ActivityKit.framework; sourceTree = DEVELOPER_DIR; };
+		301FEBC833DF2EAACF3E4AC9 /* LiveActivityChannel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LiveActivityChannel.swift; sourceTree = "<group>"; };
 		331C807B294A618700263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		331C8081294A63A400263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		377156D6D42DC911C90A6379 /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		3A2F10460A074E76064AE788 /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 		3AA34976390348D41F5830CF /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
+		3B8C857AFF1F6AF0B5781FD9 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/SwiftUI.framework; sourceTree = DEVELOPER_DIR; };
 		5467FA3FB9D4180FB100C217 /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
+		8116A396C1EE8D879786D807 /* PomoskyTimerWidgetBundle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PomoskyTimerWidgetBundle.swift; sourceTree = "<group>"; };
+		92D5B223EB1A12756AEA3581 /* PomoskyTimerLiveActivity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PomoskyTimerLiveActivity.swift; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
 		97C146EE1CF9000F007C117D /* Runner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Runner.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -67,6 +104,7 @@
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AD51B3E58117BD7150410DAE /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
 		D006294239EA5978A8ACF1CE /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
+		ED972CB82F343A4C79403695 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,6 +124,17 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CDC19E2A2A69601543D43917 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				10A65624BFB7A56730DEAA69 /* Foundation.framework in Frameworks */,
+				1ED131D1D1DA4C87418FF571 /* SwiftUI.framework in Frameworks */,
+				E95504005D38CBFBFFCBA52B /* WidgetKit.framework in Frameworks */,
+				55B9C8F8DD21BD2AB2DF37FF /* ActivityKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -102,8 +151,18 @@
 			children = (
 				3AA34976390348D41F5830CF /* Pods_Runner.framework */,
 				2900C45067E6ADFB3962CCE2 /* Pods_RunnerTests.framework */,
+				F1E09BCF3069A33F8B71F17B /* iOS */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		9139E9C76C511152DE94ED2D /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				02BAB9E7057BC13704E2FB29 /* PomoskyTimerAttributes.swift */,
+			);
+			name = Shared;
+			path = Shared;
 			sourceTree = "<group>";
 		};
 		9740EEB11CF90186004384FC /* Flutter */ = {
@@ -140,6 +199,8 @@
 				331C8082294A63A400263BE5 /* RunnerTests */,
 				978D9EA02995FCB317DFC391 /* Pods */,
 				395C664818434C1E19502335 /* Frameworks */,
+				9139E9C76C511152DE94ED2D /* Shared */,
+				A810845E5505C15E70F6FBF3 /* PomoskyTimerWidget */,
 			);
 			sourceTree = "<group>";
 		};
@@ -148,6 +209,7 @@
 			children = (
 				97C146EE1CF9000F007C117D /* Runner.app */,
 				331C8081294A63A400263BE5 /* RunnerTests.xctest */,
+				20E1120810A7D5D14BE47B55 /* PomoskyTimerWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -164,8 +226,31 @@
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
+				301FEBC833DF2EAACF3E4AC9 /* LiveActivityChannel.swift */,
 			);
 			path = Runner;
+			sourceTree = "<group>";
+		};
+		A810845E5505C15E70F6FBF3 /* PomoskyTimerWidget */ = {
+			isa = PBXGroup;
+			children = (
+				8116A396C1EE8D879786D807 /* PomoskyTimerWidgetBundle.swift */,
+				92D5B223EB1A12756AEA3581 /* PomoskyTimerLiveActivity.swift */,
+				06CC31CA8CC1012EF691CCE8 /* Info.plist */,
+			);
+			name = PomoskyTimerWidget;
+			path = PomoskyTimerWidget;
+			sourceTree = "<group>";
+		};
+		F1E09BCF3069A33F8B71F17B /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				ED972CB82F343A4C79403695 /* Foundation.framework */,
+				3B8C857AFF1F6AF0B5781FD9 /* SwiftUI.framework */,
+				0C4D8276B95106B9147F93B6 /* WidgetKit.framework */,
+				2E61E71DFCA8A4BDABEB2322 /* ActivityKit.framework */,
+			);
+			name = iOS;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -200,17 +285,36 @@
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
+				AE3C7381511122A06553CF81 /* Embed Foundation Extensions */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				135C1C9EDE72BAB7492F21A6 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				79CDFFB41ED5B230CCC2C762 /* PBXTargetDependency */,
 			);
 			name = Runner;
 			productName = Runner;
 			productReference = 97C146EE1CF9000F007C117D /* Runner.app */;
 			productType = "com.apple.product-type.application";
+		};
+		C1AE0AB44422EFD45C78DF71 /* PomoskyTimerWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B11D7A1DDE0035BE3FA50D78 /* Build configuration list for PBXNativeTarget "PomoskyTimerWidget" */;
+			buildPhases = (
+				B8B0024530018E140D1EC5D9 /* Sources */,
+				CDC19E2A2A69601543D43917 /* Frameworks */,
+				2EAE6FC8C55494BFC274BD70 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PomoskyTimerWidget;
+			productName = PomoskyTimerWidget;
+			productReference = 20E1120810A7D5D14BE47B55 /* PomoskyTimerWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -247,11 +351,19 @@
 			targets = (
 				97C146ED1CF9000F007C117D /* Runner */,
 				331C8080294A63A400263BE5 /* RunnerTests */,
+				C1AE0AB44422EFD45C78DF71 /* PomoskyTimerWidget */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		2EAE6FC8C55494BFC274BD70 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		331C807F294A63A400263BE5 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -383,6 +495,18 @@
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */,
+				40F668A0FA3C057151332A94 /* LiveActivityChannel.swift in Sources */,
+				5C55B8635EF06BB79E33666F /* PomoskyTimerAttributes.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B8B0024530018E140D1EC5D9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8CECEF2787B03B42158E5477 /* PomoskyTimerWidgetBundle.swift in Sources */,
+				E0CFAE2B2EE30568CFBFA74C /* PomoskyTimerLiveActivity.swift in Sources */,
+				A7F80602330139CC29E6508E /* PomoskyTimerAttributes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -393,6 +517,12 @@
 			isa = PBXTargetDependency;
 			target = 97C146ED1CF9000F007C117D /* Runner */;
 			targetProxy = 331C8085294A63A400263BE5 /* PBXContainerItemProxy */;
+		};
+		79CDFFB41ED5B230CCC2C762 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = PomoskyTimerWidget;
+			target = C1AE0AB44422EFD45C78DF71 /* PomoskyTimerWidget */;
+			targetProxy = 834487C18A3F15D3140980C7 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -490,6 +620,31 @@
 			};
 			name = Profile;
 		};
+		305E5C8F009147EDDA2E9773 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9740EEB31CF90195004384FC /* Generated.xcconfig */;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = TG8DXG7PLA;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				INFOPLIST_FILE = PomoskyTimerWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.pomosky.pomoskyMobile.PomoskyTimerWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Profile;
+		};
 		331C8088294A63A400263BE5 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 377156D6D42DC911C90A6379 /* Pods-RunnerTests.debug.xcconfig */;
@@ -539,6 +694,55 @@
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
 			};
 			name = Profile;
+		};
+		3C50A415FE5B55451C2ECB45 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9740EEB31CF90195004384FC /* Generated.xcconfig */;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = TG8DXG7PLA;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				INFOPLIST_FILE = PomoskyTimerWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.pomosky.pomoskyMobile.PomoskyTimerWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		49FDE947738503DE479ADAB3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9740EEB31CF90195004384FC /* Generated.xcconfig */;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = TG8DXG7PLA;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				INFOPLIST_FILE = PomoskyTimerWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.pomosky.pomoskyMobile.PomoskyTimerWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
 		};
 		97C147031CF9000F007C117D /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -725,6 +929,16 @@
 				97C147061CF9000F007C117D /* Debug */,
 				97C147071CF9000F007C117D /* Release */,
 				249021D4217E4FDB00AE95B9 /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B11D7A1DDE0035BE3FA50D78 /* Build configuration list for PBXNativeTarget "PomoskyTimerWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3C50A415FE5B55451C2ECB45 /* Release */,
+				49FDE947738503DE479ADAB3 /* Debug */,
+				305E5C8F009147EDDA2E9773 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
