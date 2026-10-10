@@ -51,7 +51,7 @@ void main() {
       'https://pomosky.example/r/abcd2345?utm_source=telegram',
     );
     await tester.tap(find.text('Join room'));
-    await tester.pumpAndSettle();
+    await _settle(tester);
     expect(visited, ['abcd2345']);
   });
 
@@ -79,7 +79,7 @@ void main() {
       ),
     );
     await tester.tap(find.text('Create a room'));
-    await tester.pumpAndSettle();
+    await _settle(tester);
 
     expect(await store.read('abcd2345'), 'secret');
     expect(visited, ['abcd2345']);
@@ -94,7 +94,7 @@ void main() {
       ),
     );
     await tester.tap(find.text('Create a room'));
-    await tester.pumpAndSettle();
+    await _settle(tester);
 
     expect(find.text('Too many rooms'), findsOneWidget);
     expect(visited, isEmpty);
@@ -113,7 +113,7 @@ void main() {
         ),
       );
       await tester.tap(find.text('Create a room'));
-      await tester.pumpAndSettle();
+      await _settle(tester);
 
       expect(
         find.textContaining('Could not save the host key'),
@@ -124,4 +124,31 @@ void main() {
       expect(find.text('Create a room'), findsOneWidget);
     },
   );
+
+  testWidgets('fits a small phone with large text', (tester) async {
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(
+          size: Size(320, 568),
+          textScaler: TextScaler.linear(1.5),
+        ),
+        child: _app(<String>[]),
+      ),
+    );
+    await _settle(tester);
+
+    expect(tester.takeException(), isNull);
+    await tester.ensureVisible(find.text('Join room'));
+    expect(find.text('Join room').hitTestable(), findsOneWidget);
+  });
+}
+
+/// The home screen sits on the live sky, which animates forever, so
+/// pumpAndSettle would never return.
+Future<void> _settle(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 500));
 }
