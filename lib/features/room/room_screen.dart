@@ -304,16 +304,28 @@ class _WeatherLine extends StatelessWidget {
       age: age,
     );
     return Padding(
-      padding: const EdgeInsets.only(top: 4, left: 16, right: 16),
+      padding: const EdgeInsets.fromLTRB(Gap.l, Gap.s, Gap.l, 0),
       child: Text(
         text,
         textAlign: TextAlign.center,
-        style: Theme.of(context).textTheme.bodySmall,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          color: Tint.creamDim,
+          fontWeight: FontWeight.w500,
+          // A faint shadow, so the line holds on a pale afternoon sky.
+          shadows: [
+            Shadow(
+              color: Night.background.withValues(alpha: 0.5),
+              blurRadius: 8,
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
+/// A quiet plaque under the app bar: a lost connection is the network's
+/// fault, not the user's, so it is amber and calm rather than an alarm.
 class _ConnectionBanner extends StatelessWidget {
   const _ConnectionBanner({required this.status});
 
