@@ -15,6 +15,11 @@ final hostTokenStoreProvider = Provider<HostTokenStore>(
   (ref) => SecureHostTokenStore(),
 );
 
+/// Creates a room on the server. Tests override it.
+final roomCreatorProvider = Provider<Future<CreatedRoom> Function()>(
+  (ref) => createRoom,
+);
+
 /// The host token of a room, if this phone created it.
 final hostTokenProvider = FutureProvider.autoDispose.family<String?, String>(
   (ref, roomId) => ref.watch(hostTokenStoreProvider).read(roomId),
