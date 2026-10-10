@@ -56,7 +56,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pump();
     expect(queries, ['seo']);
-    expect(find.text('Seoul, South Korea'), findsOneWidget);
+    expect(find.text('Seoul'), findsOneWidget);
+    expect(find.text('South Korea'), findsOneWidget);
   });
 
   testWidgets('tapping a result returns that place', (tester) async {
@@ -82,7 +83,7 @@ void main() {
     await tester.enterText(find.byType(TextField), 'seoul');
     await tester.pump(const Duration(milliseconds: 600));
     await tester.pump();
-    await tester.tap(find.text('Seoul, South Korea'));
+    await tester.tap(find.text('Seoul'));
     await tester.pumpAndSettle();
 
     expect(picked?.tz, 'Asia/Seoul');
@@ -125,6 +126,6 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500)); // 'seo' is sent
     await tester.enterText(find.byType(TextField), 'x'); // too short: cleared
     await tester.pump(const Duration(seconds: 3));
-    expect(find.text('Seoul, South Korea'), findsNothing);
+    expect(find.text('Seoul'), findsNothing);
   });
 }
