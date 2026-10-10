@@ -384,14 +384,35 @@ class _Viewers extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 16),
-      child: Row(
-        children: [
-          const Icon(Icons.people_outline, size: 20),
-          const SizedBox(width: 4),
-          Text('$count'),
-        ],
+    return Semantics(
+      label: '$count in the room',
+      excludeSemantics: true,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: Gap.xs),
+        padding: const EdgeInsets.symmetric(horizontal: Gap.s + 2, vertical: 5),
+        decoration: BoxDecoration(
+          color: Glass.fill,
+          borderRadius: BorderRadius.circular(Radii.pill),
+          border: Border.all(color: Glass.edge),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.people_alt_outlined,
+              size: 15,
+              color: Tint.creamDim,
+            ),
+            const SizedBox(width: Gap.xs + 1),
+            Text(
+              '$count',
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: Tint.cream,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
