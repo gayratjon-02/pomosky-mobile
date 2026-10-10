@@ -28,12 +28,6 @@ import 'room_providers.dart';
 import 'room_session.dart';
 import 'room_state.dart';
 
-/// A faint shadow under small text that sits straight on the sky, so it
-/// holds on a pale afternoon sky as well as at night.
-final _skyTextShadow = [
-  Shadow(color: Night.background.withValues(alpha: 0.5), blurRadius: 8),
-];
-
 const _reactions = {'clap': '👏', 'coffee': '☕', 'fire': '🔥', 'heart': '❤️'};
 
 /// Checks that the room exists, then shows it.
@@ -333,9 +327,9 @@ class _WeatherLine extends StatelessWidget {
         text,
         textAlign: TextAlign.center,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: Tint.creamDim,
+          color: Tint.cream.withValues(alpha: 0.9),
           fontWeight: FontWeight.w500,
-          shadows: _skyTextShadow,
+          shadows: skyTextShadow,
         ),
       ),
     );
@@ -521,7 +515,7 @@ class _TimerFace extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: Tint.creamDim,
-                    shadows: _skyTextShadow,
+                    shadows: skyTextShadow,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -579,7 +573,7 @@ class _People extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Tint.creamDim,
-              shadows: _skyTextShadow,
+              shadows: skyTextShadow,
             ),
           ),
         ],
