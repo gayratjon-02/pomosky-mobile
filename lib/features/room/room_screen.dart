@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../data/config.dart';
 import '../../data/places_api.dart';
 import '../../data/room_api.dart';
 import '../../data/weather_api.dart';
@@ -15,6 +16,7 @@ import '../../ui/sky/sky_inputs.dart';
 import '../../ui/timer_ring.dart';
 import 'error_text.dart';
 import 'host_controls.dart';
+import 'nickname_dialog.dart';
 import 'live_timer_providers.dart';
 import 'place_picker.dart';
 import 'room_providers.dart';
@@ -130,6 +132,22 @@ class _RoomView extends ConsumerWidget {
             onPressed: () => ref.read(soundEnabledProvider.notifier).toggle(),
           ),
           _Viewers(count: state.viewers),
+          PopupMenuButton<_MenuAction>(
+            tooltip: 'More',
+            onSelected: (a) => switch (a) {
+              _MenuAction.share => ref.read(shareTextProvider)(
+                'Focus with me on Pomosky: ${roomLink(roomId)}',
+              ),
+              _MenuAction.name => _editName(context, ref, session),
+            },
+            itemBuilder: (_) => const [
+              PopupMenuItem(
+                value: _MenuAction.share,
+                child: Text('Share the link'),
+              ),
+              PopupMenuItem(value: _MenuAction.name, child: Text('Your name')),
+            ],
+          ),
         ],
       ),
       body: SkyBackground(
@@ -189,6 +207,29 @@ class _RoomView extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+enum _MenuAction { share, name }
+
+/// Asks for a name and tells the room. The server cannot drop a name it was
+/// given, so going anonymous reconnects without it.
+Future<void> _editName(
+  BuildContext context,
+  WidgetRef ref,
+  RoomSession session,
+) async {
+  final current = ref.read(nicknameProvider);
+  final name = await showDialog<String>(
+    context: context,
+    builder: (_) => NicknameDialog(initial: current),
+  );
+  if (name == null || name == current) return;
+  await ref.read(nicknameProvider.notifier).set(name);
+  if (name.isEmpty) {
+    session.reconnect();
+  } else {
+    session.join(name);
   }
 }
 

@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pomosky_mobile/data/host_tokens.dart';
 import 'package:pomosky_mobile/data/protocol/server_messages.dart';
 import 'package:pomosky_mobile/data/room_api.dart';
+import 'package:pomosky_mobile/data/settings.dart';
 import 'package:pomosky_mobile/data/weather_api.dart';
 import 'package:pomosky_mobile/data/ws/room_transport.dart';
 import 'package:pomosky_mobile/domain/timer_view.dart';
@@ -45,7 +46,10 @@ class _Transport implements RoomTransport {
   }
 }
 
-Future<_Transport> _pump(WidgetTester tester) async {
+Future<_Transport> _pump(
+  WidgetTester tester, {
+  List<Override> extra = const [],
+}) async {
   final t = _Transport();
   await tester.pumpWidget(
     ProviderScope(
@@ -55,6 +59,7 @@ Future<_Transport> _pump(WidgetTester tester) async {
         roomLookupProvider.overrideWith((ref, id) => RoomLookup.found),
         // No real ticker: its periodic timer would outlive the test.
         tickProvider.overrideWith((ref) => const Stream<int>.empty()),
+        ...extra,
       ],
       child: MaterialApp.router(
         routerConfig: GoRouter(
@@ -321,4 +326,57 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
   });
+
+  testWidgets('the menu shares the room link', (tester) async {
+    String? shared;
+    await _pump(
+      tester,
+      extra: [
+        shareTextProvider.overrideWithValue((text) async => shared = text),
+      ],
+    );
+    await _choose(tester, 'Share the link');
+
+    expect(shared, contains('/r/abcd2345'));
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('choosing a name tells the room and is remembered', (
+    tester,
+  ) async {
+    final settings = MemorySettings();
+    final t = await _pump(
+      tester,
+      extra: [appSettingsProvider.overrideWithValue(settings)],
+    );
+    t.connected();
+    await tester.pump();
+    await _choose(tester, 'Your name');
+    await tester.enterText(find.byType(TextField), 'Ayla');
+    await tester.tap(find.text('Save'));
+    await _settle(tester);
+
+    expect(settings.nickname, 'Ayla');
+    expect(
+      t.sent.any((f) => f.contains('"join"') && f.contains('Ayla')),
+      isTrue,
+    );
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+  });
+}
+
+/// The sky animates forever, so pumpAndSettle would never return.
+Future<void> _settle(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 500));
+}
+
+/// Opens the app bar menu and picks an entry.
+Future<void> _choose(WidgetTester tester, String entry) async {
+  await tester.tap(find.byTooltip('More'));
+  await _settle(tester);
+  await tester.tap(find.text(entry).last);
+  await _settle(tester);
 }

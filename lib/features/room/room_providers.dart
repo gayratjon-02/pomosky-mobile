@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../data/config.dart';
 import '../../data/host_tokens.dart';
@@ -155,6 +156,12 @@ class NicknameNotifier extends Notifier<String> {
 /// The name shown to the others in a room; empty means anonymous.
 final nicknameProvider = NotifierProvider<NicknameNotifier, String>(
   NicknameNotifier.new,
+);
+
+/// Opens the system share sheet with some text. Tests override it.
+final shareTextProvider = Provider<Future<void> Function(String text)>(
+  (ref) =>
+      (text) => SharePlus.instance.share(ShareParams(text: text)),
 );
 
 /// Rings and vibrates at the end of a phase. Silent unless the app overrides it.
