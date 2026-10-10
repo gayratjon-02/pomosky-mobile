@@ -487,7 +487,7 @@ class _TimerFace extends StatelessWidget {
               duration: Motion.normal,
               style: theme.textTheme.labelSmall!.copyWith(
                 color: color,
-                letterSpacing: 2,
+                letterSpacing: 1.2,
               ),
               child: Text(_phaseLabel),
             ),
@@ -547,7 +547,7 @@ class _People extends StatelessWidget {
       if (hidden > 0) _MoreFace(count: hidden, size: _face),
     ];
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: Gap.xl, vertical: Gap.s),
+      padding: const EdgeInsets.fromLTRB(Gap.xl, Gap.s, Gap.xl, Gap.m),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
