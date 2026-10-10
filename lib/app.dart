@@ -14,6 +14,37 @@ const _initialRoute = String.fromEnvironment(
   defaultValue: '/',
 );
 
+/// Development only: `--dart-define=FORCE_VIEWPORT=320x568` shows the app in a
+/// window of that logical size, centred on the screen, to check small phones
+/// that no current simulator offers. Ignored outside debug builds.
+const _forceViewport = String.fromEnvironment('FORCE_VIEWPORT');
+
+/// Parses "WIDTHxHEIGHT"; null for anything else.
+Size? parseViewport(String value) {
+  final parts = value.split('x');
+  if (parts.length != 2) return null;
+  final w = double.tryParse(parts[0]);
+  final h = double.tryParse(parts[1]);
+  if (w == null || h == null || w < 200 || h < 300) return null;
+  return Size(w, h);
+}
+
+Widget _inViewport(Widget app, Size size) => ColoredBox(
+  color: const Color(0xFF000000),
+  child: Center(
+    child: ClipRect(
+      child: SizedBox(
+        width: size.width,
+        height: size.height,
+        child: MediaQuery(
+          data: MediaQueryData(size: size, padding: EdgeInsets.zero),
+          child: app,
+        ),
+      ),
+    ),
+  ),
+);
+
 GoRouter _buildRouter() => GoRouter(
   initialLocation: _initialRoute,
   routes: [
@@ -57,6 +88,12 @@ class _PomoskyAppState extends State<PomoskyApp> {
       title: 'Pomosky',
       theme: pomoskyTheme(),
       routerConfig: _router,
+      builder: (context, child) {
+        final size = kDebugMode ? parseViewport(_forceViewport) : null;
+        return size == null || child == null
+            ? child ?? const SizedBox()
+            : _inViewport(child, size);
+      },
     );
   }
 }
