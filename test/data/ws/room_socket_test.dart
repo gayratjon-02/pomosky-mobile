@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pomosky_mobile/data/protocol/server_messages.dart';
 import 'package:pomosky_mobile/data/ws/room_socket.dart';
+import 'package:pomosky_mobile/data/ws/room_transport.dart';
 
 /// A throwaway WebSocket server on localhost; no real network is used.
 class _TestServer {

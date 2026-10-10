@@ -5,8 +5,7 @@ import 'dart:math';
 
 import '../../core/backoff.dart';
 import '../protocol/server_messages.dart';
-
-enum SocketStatus { connecting, connected, reconnecting, closed }
+import 'room_transport.dart';
 
 typedef SocketConnector =
     Future<WebSocket> Function(String url, Map<String, dynamic> headers);
@@ -19,7 +18,7 @@ Future<WebSocket> _defaultConnector(String url, Map<String, dynamic> headers) =>
 /// The server only accepts upgrades whose `Origin` equals its own host, so the
 /// app sends it explicitly. [handshake] returns the frames to send right after
 /// every (re)connect, such as `join` and `host.auth`.
-class RoomSocket {
+class RoomSocket implements RoomTransport {
   RoomSocket({
     required this.url,
     required this.origin,
@@ -43,10 +42,14 @@ class RoomSocket {
   bool _closed = false;
   SocketStatus _current = SocketStatus.connecting;
 
+  @override
   Stream<ServerMessage> get messages => _messages.stream;
+  @override
   Stream<SocketStatus> get status => _status.stream;
+  @override
   SocketStatus get currentStatus => _current;
 
+  @override
   void connect() {
     if (_closed) return;
     _setStatus(
@@ -104,7 +107,7 @@ class RoomSocket {
     _retry = Timer(delay, _open);
   }
 
-  /// Sends a frame; returns false when there is no open connection.
+  @override
   bool send(String frame) {
     final socket = _socket;
     if (socket == null || socket.readyState != WebSocket.open) return false;
@@ -112,6 +115,7 @@ class RoomSocket {
     return true;
   }
 
+  @override
   Future<void> close() async {
     if (_closed) return;
     _closed = true;
