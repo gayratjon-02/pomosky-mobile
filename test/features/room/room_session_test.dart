@@ -24,6 +24,8 @@ class FakeTransport implements RoomTransport {
   @override
   void connect() => connectCalls++;
   @override
+  void reconnect() {}
+  @override
   bool send(String frame) {
     if (!open) return false;
     sent.add(frame);

@@ -65,6 +65,7 @@ class RoomSocket implements RoomTransport {
         await socket.close();
         return;
       }
+      socket.pingInterval = const Duration(seconds: 20); // notice dead links
       _socket = socket;
       _attempt = 0;
       _setStatus(SocketStatus.connected);
@@ -105,6 +106,17 @@ class RoomSocket implements RoomTransport {
     final delay = backoffDelay(_attempt, random: _random);
     _attempt++;
     _retry = Timer(delay, _open);
+  }
+
+  @override
+  void reconnect() {
+    if (_closed) return;
+    _retry?.cancel();
+    final old = _socket;
+    _socket = null; // its onDone is then ignored by _lost
+    old?.close().catchError((_) {});
+    _attempt = 0;
+    connect();
   }
 
   @override

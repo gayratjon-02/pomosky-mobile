@@ -11,6 +11,11 @@ abstract interface class RoomTransport {
 
   void connect();
 
+  /// Drops the current connection, if any, and connects again at once. Used
+  /// when the app returns from the background, where a connection may have
+  /// died without anyone noticing.
+  void reconnect();
+
   /// Sends a frame; returns false when there is no open connection.
   bool send(String frame);
 

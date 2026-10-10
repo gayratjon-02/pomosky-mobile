@@ -152,4 +152,54 @@ void main() {
     expect(socket.send('{"type":"ping"}'), isFalse);
     await socket.close();
   });
+
+  test(
+    'reconnect opens a fresh connection and repeats the handshake',
+    () async {
+      final socket = RoomSocket(
+        url: server.url,
+        origin: 'https://pomosky.example',
+        handshake: () => ['{"type":"join","data":{"nickname":"A"}}'],
+      );
+      final first = socket.status.firstWhere(
+        (s) => s == SocketStatus.connected,
+      );
+      socket.connect();
+      await within(first);
+      await within(
+        Future.doWhile(() async {
+          await Future<void>.delayed(const Duration(milliseconds: 10));
+          return server.received.isEmpty;
+        }),
+      );
+
+      final again = socket.status
+          .skipWhile((s) => s != SocketStatus.connecting)
+          .firstWhere((s) => s == SocketStatus.connected);
+      socket.reconnect();
+      await within(again);
+      await within(
+        Future.doWhile(() async {
+          await Future<void>.delayed(const Duration(milliseconds: 10));
+          return server.received.length < 2;
+        }),
+      );
+
+      expect(server.sockets.length, 2);
+      expect(server.received.length, 2);
+      expect(socket.currentStatus, SocketStatus.connected);
+      await socket.close();
+    },
+  );
+
+  test('reconnect after close does nothing', () async {
+    final socket = RoomSocket(
+      url: server.url,
+      origin: 'https://pomosky.example',
+      handshake: () => const [],
+    );
+    await socket.close();
+    socket.reconnect();
+    expect(socket.currentStatus, SocketStatus.closed);
+  });
 }

@@ -27,6 +27,8 @@ class _Transport implements RoomTransport {
   @override
   void connect() {}
   @override
+  void reconnect() {}
+  @override
   bool send(String frame) => false;
   @override
   Future<void> close() async {}
