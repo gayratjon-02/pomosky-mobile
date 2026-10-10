@@ -306,4 +306,19 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
   });
+
+  testWidgets('a refusal from the server is shown to the person', (
+    tester,
+  ) async {
+    final t = await _pump(tester);
+    t.connected();
+    t.msgs.add(const ErrorMessage(code: 'forbidden', message: 'host only'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('Only the host can do that'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+  });
 }

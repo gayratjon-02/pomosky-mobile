@@ -13,6 +13,7 @@ import '../../domain/timer_view.dart';
 import '../../ui/sky/sky_background.dart';
 import '../../ui/sky/sky_inputs.dart';
 import '../../ui/timer_ring.dart';
+import 'error_text.dart';
 import 'host_controls.dart';
 import 'live_timer_providers.dart';
 import 'place_picker.dart';
@@ -87,6 +88,13 @@ class _RoomView extends ConsumerWidget {
     ref.watch(liveTimerControllerProvider(roomId)); // lock screen countdown
     ref.watch(tickProvider); // repaint the countdown
     final weather = ref.watch(weatherProvider(roomId)).value;
+    ref.listen(roomStateProvider(roomId), (previous, next) {
+      final error = next.error;
+      if (error == null || identical(error, previous?.error)) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(friendlyError(error))));
+    });
     ref.watch(screenAwakeSyncProvider(roomId));
     ref.watch(lifecycleReconnectProvider(roomId));
     final soundOn = ref.watch(soundEnabledProvider);
