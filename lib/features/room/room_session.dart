@@ -47,6 +47,9 @@ class RoomSession {
     _transport.connect();
   }
 
+  /// Reconnects now, e.g. when the app comes back from the background.
+  void reconnect() => _transport.reconnect();
+
   void _onStatus(SocketStatus s) {
     _emit(_state.copyWith(connection: s));
     _cancelPings();

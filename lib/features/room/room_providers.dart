@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/config.dart';
@@ -169,6 +170,33 @@ final screenAwakeSyncProvider = Provider.autoDispose.family<void, String>((
 
   ref.listen(roomStateProvider(roomId), (_, next) => apply(next));
   ref.onDispose(() => awake.set(false));
+});
+
+/// How long the app must have been in the background before it reconnects on
+/// return. A quick app switch keeps the live connection.
+const backgroundReconnectAfter = Duration(seconds: 3);
+
+/// Reconnects the room when the app returns from the background: a socket can
+/// die while the phone sleeps without anyone being told.
+final lifecycleReconnectProvider = Provider.autoDispose.family<void, String>((
+  ref,
+  roomId,
+) {
+  final session = ref.watch(roomSessionProvider(roomId));
+  final now = ref.watch(nowMsProvider);
+  int? leftAt;
+  final listener = AppLifecycleListener(
+    onHide: () => leftAt ??= now(),
+    onResume: () {
+      final left = leftAt;
+      leftAt = null;
+      if (left != null &&
+          now() - left >= backgroundReconnectAfter.inMilliseconds) {
+        session.reconnect();
+      }
+    },
+  );
+  ref.onDispose(listener.dispose);
 });
 
 /// Fires several times a second so countdowns repaint.
