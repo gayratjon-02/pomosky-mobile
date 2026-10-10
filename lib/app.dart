@@ -5,7 +5,15 @@ import 'features/home/home_screen.dart';
 import 'features/room/room_screen.dart';
 import 'ui/theme.dart';
 
+/// Development only: `--dart-define=INITIAL_ROUTE=/r/<id>` opens that room at
+/// launch, so a simulator does not need typing.
+const _initialRoute = String.fromEnvironment(
+  'INITIAL_ROUTE',
+  defaultValue: '/',
+);
+
 GoRouter _buildRouter() => GoRouter(
+  initialLocation: _initialRoute,
   routes: [
     GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
     GoRoute(
