@@ -20,4 +20,13 @@ void main() {
     await s.setSoundEnabled(false);
     expect(s.soundEnabled, isFalse);
   });
+
+  test('the nickname is remembered and starts empty', () async {
+    SharedPreferences.setMockInitialValues({});
+    final first = PreferencesSettings(await SharedPreferences.getInstance());
+    expect(first.nickname, '');
+    await first.setNickname('Ayla');
+    final next = PreferencesSettings(await SharedPreferences.getInstance());
+    expect(next.nickname, 'Ayla');
+  });
 }
