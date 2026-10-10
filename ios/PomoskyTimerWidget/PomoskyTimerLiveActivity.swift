@@ -88,6 +88,10 @@ struct ExpandedLeading: View {
     Label(state.title, systemImage: state.symbol)
       .font(.headline)
       .foregroundStyle(state.tint)
+      // Never break "Break" or "Paused" over two lines: shrink a little first.
+      .lineLimit(1)
+      .minimumScaleFactor(0.7)
+      .fixedSize(horizontal: true, vertical: false)
   }
 }
 
@@ -102,7 +106,8 @@ struct ExpandedTrailing: View {
       .lineLimit(1)
       .minimumScaleFactor(0.6)
       .multilineTextAlignment(.trailing)
-      .frame(width: 120, alignment: .trailing)
+      // Up to 120 points, less when the label next to it needs the room.
+      .frame(maxWidth: 120, alignment: .trailing)
   }
 }
 
@@ -111,7 +116,10 @@ struct ExpandedBottom: View {
 
   var body: some View {
     if !state.label.isEmpty {
-      Text(state.label).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
+      Text(state.label)
+        .font(.subheadline)
+        .foregroundStyle(Color.white.opacity(0.72))
+        .lineLimit(1)
     }
   }
 }
