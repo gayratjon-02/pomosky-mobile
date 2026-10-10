@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../data/config.dart';
 import '../../data/host_tokens.dart';
 import '../../data/protocol/client_messages.dart';
+import '../../data/phase_notifier.dart';
 import '../../data/places_api.dart';
 import '../../data/room_api.dart';
 import '../../data/screen_awake.dart';
@@ -15,6 +16,7 @@ import '../../data/ws/room_socket.dart';
 import '../../data/ws/room_transport.dart';
 import '../../domain/nickname.dart';
 import '../../domain/phase_end.dart';
+import '../../domain/phase_notification.dart';
 import '../../domain/timer_view.dart';
 import 'place_picker.dart';
 import 'room_session.dart';
@@ -198,6 +200,65 @@ final screenAwakeSyncProvider = Provider.autoDispose.family<void, String>((
   ref.listen(roomStateProvider(roomId), (_, next) => apply(next));
   ref.onDispose(() => awake.set(false));
 });
+
+/// Schedules the phase-end notification. Silent unless the app overrides it.
+final phaseNotifierProvider = Provider<PhaseNotifier>(
+  (ref) => NoPhaseNotifier(),
+);
+
+/// While the app is in the background a running phase cannot ring by itself,
+/// so a notification is scheduled for its end and removed when the app returns
+/// (the app then rings in-app). Permission is asked once, in the foreground,
+/// the first time a phase is running.
+final phaseNotificationSyncProvider = Provider.autoDispose.family<void, String>(
+  (ref, roomId) {
+    final notifier = ref.watch(phaseNotifierProvider);
+    final session = ref.watch(roomSessionProvider(roomId));
+    final settings = ref.watch(appSettingsProvider);
+    final now = ref.watch(nowMsProvider);
+    var hidden = false;
+
+    void apply() {
+      final plan = hidden
+          ? planPhaseNotification(
+              ref.read(roomStateProvider(roomId)).timer,
+              serverNowMs: session.serverNowMs(),
+              now: DateTime.fromMillisecondsSinceEpoch(now()),
+            )
+          : null;
+      if (plan == null) {
+        notifier.cancel();
+      } else {
+        notifier.schedule(at: plan.at, title: plan.title, body: plan.body);
+      }
+    }
+
+    final listener = AppLifecycleListener(
+      onHide: () {
+        hidden = true;
+        apply();
+      },
+      onShow: () {
+        hidden = false;
+        apply();
+      },
+    );
+    ref.listen(roomStateProvider(roomId), (_, next) {
+      final running =
+          next.timer.phase == Phase.focus || next.timer.phase == Phase.break_;
+      if (hidden) {
+        apply(); // the host paused or reset while we were away
+      } else if (running && !settings.notificationsAsked) {
+        settings.setNotificationsAsked(true);
+        notifier.requestPermission();
+      }
+    });
+    ref.onDispose(() {
+      listener.dispose();
+      notifier.cancel();
+    });
+  },
+);
 
 /// How long the app must have been in the background before it reconnects on
 /// return. A quick app switch keeps the live connection.

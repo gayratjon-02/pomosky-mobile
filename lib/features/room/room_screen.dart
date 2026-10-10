@@ -99,6 +99,7 @@ class _RoomView extends ConsumerWidget {
     });
     ref.watch(screenAwakeSyncProvider(roomId));
     ref.watch(lifecycleReconnectProvider(roomId));
+    ref.watch(phaseNotificationSyncProvider(roomId));
     final soundOn = ref.watch(soundEnabledProvider);
     final watcher = ref.watch(phaseEndWatcherProvider(roomId));
     ref.listen(tickProvider, (_, _) {
