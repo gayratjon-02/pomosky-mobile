@@ -365,6 +365,100 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
   });
+
+  testWidgets('a room that vanishes while reconnecting becomes not found', (
+    tester,
+  ) async {
+    final answers = [RoomLookup.found, RoomLookup.notFound];
+    final t = _Transport();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          hostTokenStoreProvider.overrideWithValue(MemoryHostTokenStore()),
+          roomTransportFactoryProvider.overrideWithValue((_, _) => t),
+          roomLookupProvider.overrideWith((ref, id) => answers.removeAt(0)),
+          roomGoneCheckDelayProvider.overrideWithValue(
+            const Duration(milliseconds: 200),
+          ),
+          tickProvider.overrideWith((ref) => const Stream<int>.empty()),
+        ],
+        child: MaterialApp.router(
+          routerConfig: GoRouter(
+            routes: [
+              GoRoute(
+                path: '/',
+                builder: (_, _) => const RoomScreen(roomId: 'abcd2345'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    t.connected();
+    await tester.pump();
+    expect(find.text('Room not found'), findsNothing);
+
+    // The connection drops and does not come back.
+    t.stat.add(SocketStatus.reconnecting);
+    await tester.pump();
+    await tester.pump();
+    expect(find.textContaining('Connection lost'), findsOneWidget);
+    expect(find.text('Room not found'), findsNothing);
+
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('Room not found'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('a connection that comes back is not second-guessed', (
+    tester,
+  ) async {
+    var asked = 0;
+    final t = _Transport();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          hostTokenStoreProvider.overrideWithValue(MemoryHostTokenStore()),
+          roomTransportFactoryProvider.overrideWithValue((_, _) => t),
+          roomLookupProvider.overrideWith((ref, id) {
+            asked++;
+            return RoomLookup.found;
+          }),
+          roomGoneCheckDelayProvider.overrideWithValue(
+            const Duration(milliseconds: 200),
+          ),
+          tickProvider.overrideWith((ref) => const Stream<int>.empty()),
+        ],
+        child: MaterialApp.router(
+          routerConfig: GoRouter(
+            routes: [
+              GoRoute(
+                path: '/',
+                builder: (_, _) => const RoomScreen(roomId: 'abcd2345'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    t.connected();
+    t.stat.add(SocketStatus.reconnecting);
+    await tester.pump();
+    t.connected(); // back before the check
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(asked, 1);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+  });
 }
 
 /// The sky animates forever, so pumpAndSettle would never return.

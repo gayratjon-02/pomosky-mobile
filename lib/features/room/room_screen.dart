@@ -36,7 +36,9 @@ class RoomScreen extends ConsumerWidget {
     final lookup = ref.watch(roomLookupProvider(roomId));
     // The session must know the host token before it connects.
     final token = ref.watch(hostTokenProvider(roomId));
-    if (lookup.isLoading || token.isLoading) {
+    // A refresh of the lookup keeps the old value, so the room stays on screen
+    // while the server is asked again.
+    if (!lookup.hasValue || !token.hasValue) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return lookup.value == RoomLookup.notFound
@@ -99,6 +101,7 @@ class _RoomView extends ConsumerWidget {
     });
     ref.watch(screenAwakeSyncProvider(roomId));
     ref.watch(lifecycleReconnectProvider(roomId));
+    ref.watch(roomGoneCheckProvider(roomId));
     ref.watch(phaseNotificationSyncProvider(roomId));
     final soundOn = ref.watch(soundEnabledProvider);
     final watcher = ref.watch(phaseEndWatcherProvider(roomId));

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
@@ -259,6 +261,35 @@ final phaseNotificationSyncProvider = Provider.autoDispose.family<void, String>(
     });
   },
 );
+
+/// How long a lost connection may last before the app asks the server whether
+/// the room still exists. Tests shorten it.
+final roomGoneCheckDelayProvider = Provider<Duration>(
+  (ref) => const Duration(seconds: 8),
+);
+
+/// A room can disappear (the host closed it, the server restarted); its socket
+/// would then retry forever. When the connection stays down, ask again whether
+/// the room exists, so the screen can say "not found" instead of "reconnecting".
+final roomGoneCheckProvider = Provider.autoDispose.family<void, String>((
+  ref,
+  roomId,
+) {
+  final delay = ref.watch(roomGoneCheckDelayProvider);
+  Timer? pending;
+  ref.listen(roomStateProvider(roomId), (previous, next) {
+    final down = next.connection == SocketStatus.reconnecting;
+    final wasDown = previous?.connection == SocketStatus.reconnecting;
+    if (down && !wasDown) {
+      pending?.cancel();
+      pending = Timer(delay, () => ref.invalidate(roomLookupProvider(roomId)));
+    } else if (!down) {
+      pending?.cancel();
+      pending = null;
+    }
+  });
+  ref.onDispose(() => pending?.cancel());
+});
 
 /// How long the app must have been in the background before it reconnects on
 /// return. A quick app switch keeps the live connection.
