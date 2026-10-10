@@ -9,6 +9,9 @@ import 'package:pomosky_mobile/app.dart';
 /// `flutter test integration_test -d <device> --dart-define=BASE_URL=http://localhost:8098 --dart-define=ROOM=<id>`.
 const _room = String.fromEnvironment('ROOM');
 
+/// Seconds to keep the final screen up, so it can be looked at or captured.
+const _hold = int.fromEnvironment('HOLD');
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -46,9 +49,25 @@ void main() {
     await tester.pump(const Duration(seconds: 3));
     expect(shown(), isNot(first));
 
-    // A reaction goes to the server and comes back as a count.
+    // A reaction goes to the server and comes back as a bigger count.
+    int claps() => int.parse(
+      tester.widget<Text>(find.textContaining('👏')).data!.split(' ').last,
+    );
+    final before = claps();
     await tester.tap(find.textContaining('👏'));
     await tester.pump(const Duration(seconds: 1));
-    expect(find.textContaining('👏 1'), findsOneWidget);
+    expect(claps(), before + 1);
+
+    if (_hold > 0) await tester.pump(const Duration(seconds: _hold));
+  });
+
+  testWidgets('an unknown room says so', (tester) async {
+    await tester.pumpWidget(const ProviderScope(child: PomoskyApp()));
+    await tester.enterText(find.byType(TextField), 'aaaaaaaa');
+    await tester.tap(find.text('Join room'));
+    for (var i = 0; i < 30; i++) {
+      await tester.pump(const Duration(milliseconds: 200));
+    }
+    expect(find.text('Room not found'), findsOneWidget);
   });
 }
