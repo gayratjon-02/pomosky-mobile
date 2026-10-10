@@ -19,7 +19,15 @@ class SecureHostTokenStore implements HostTokenStore {
   String _key(String roomId) => 'host-token.$roomId';
 
   @override
-  Future<String?> read(String roomId) => _storage.read(key: _key(roomId));
+  Future<String?> read(String roomId) async {
+    // A locked keychain (a launch in the background) must not stop the room
+    // from opening: without the token this phone is simply a viewer.
+    try {
+      return await _storage.read(key: _key(roomId));
+    } catch (_) {
+      return null;
+    }
+  }
 
   @override
   Future<void> write(String roomId, String token) =>

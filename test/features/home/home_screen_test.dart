@@ -7,6 +7,16 @@ import 'package:pomosky_mobile/data/room_api.dart';
 import 'package:pomosky_mobile/features/home/home_screen.dart';
 import 'package:pomosky_mobile/features/room/room_providers.dart';
 
+class _BrokenStore implements HostTokenStore {
+  @override
+  Future<String?> read(String roomId) async => null;
+  @override
+  Future<void> write(String roomId, String token) async =>
+      throw StateError('keychain locked');
+  @override
+  Future<void> delete(String roomId) async {}
+}
+
 Widget _app(
   List<String> visited, {
   HostTokenStore? store,
@@ -89,4 +99,29 @@ void main() {
     expect(find.text('Too many rooms'), findsOneWidget);
     expect(visited, isEmpty);
   });
+
+  testWidgets(
+    'a host key that cannot be saved is reported, not lost silently',
+    (tester) async {
+      final visited = <String>[];
+      await tester.pumpWidget(
+        _app(
+          visited,
+          store: _BrokenStore(),
+          creator: () async =>
+              const CreatedRoom(id: 'abcd2345', hostToken: 'secret'),
+        ),
+      );
+      await tester.tap(find.text('Create a room'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining('Could not save the host key'),
+        findsOneWidget,
+      );
+      expect(visited, isEmpty);
+      // The button works again for another try.
+      expect(find.text('Create a room'), findsOneWidget);
+    },
+  );
 }

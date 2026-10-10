@@ -38,7 +38,8 @@ class RoomScreen extends ConsumerWidget {
     final token = ref.watch(hostTokenProvider(roomId));
     // A refresh of the lookup keeps the old value, so the room stays on screen
     // while the server is asked again.
-    if (!lookup.hasValue || !token.hasValue) {
+    if ((lookup.isLoading && !lookup.hasValue) ||
+        (token.isLoading && !token.hasValue)) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return lookup.value == RoomLookup.notFound

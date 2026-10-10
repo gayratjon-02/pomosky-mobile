@@ -48,6 +48,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       if (mounted) context.go('/r/${created.id}');
     } on RoomCreateException catch (e) {
       if (mounted) setState(() => _createError = e.message);
+    } catch (_) {
+      // The room exists but its host key (shown only once) could not be kept.
+      if (mounted) {
+        setState(
+          () => _createError =
+              'Could not save the host key on this phone. Please try again.',
+        );
+      }
     } finally {
       if (mounted) setState(() => _creating = false);
     }
