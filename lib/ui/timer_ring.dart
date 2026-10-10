@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'tokens.dart';
+
 /// A ring that empties clockwise as time runs out. [fraction] is 1 when the
 /// phase starts and 0 when it ends.
 class TimerRing extends StatelessWidget {
@@ -28,10 +30,16 @@ class TimerRing extends StatelessWidget {
         painter: RingPainter(
           fraction: fraction,
           color: color,
-          track: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+          track: Tint.cream.withValues(alpha: 0.09),
           strokeWidth: strokeWidth,
         ),
-        child: Center(child: child),
+        child: Center(
+          child: Padding(
+            // Keeps the numbers clear of the stroke on large text.
+            padding: EdgeInsets.all(strokeWidth * 2),
+            child: FittedBox(fit: BoxFit.scaleDown, child: child),
+          ),
+        ),
       ),
     );
   }
@@ -56,17 +64,55 @@ class RingPainter extends CustomPainter {
       center: size.center(Offset.zero),
       radius: (size.shortestSide - strokeWidth) / 2,
     );
-    final paint = Paint()
+    final stroke = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
 
-    canvas.drawArc(rect, 0, math.pi * 2, false, paint..color = track);
+    // A thin track, so the lit arc reads as the thing that matters.
+    canvas.drawArc(
+      rect,
+      0,
+      math.pi * 2,
+      false,
+      stroke
+        ..color = track
+        ..strokeWidth = strokeWidth * 0.45,
+    );
+
     final sweep = math.pi * 2 * fraction.clamp(0.0, 1.0);
-    if (sweep > 0) {
-      // Starts at the top and the lit part shrinks towards it.
-      canvas.drawArc(rect, -math.pi / 2, sweep, false, paint..color = color);
-    }
+    if (sweep <= 0) return;
+    // Starts at the top and the lit part shrinks towards it.
+    const start = -math.pi / 2;
+    // A faint halo under the arc, like light on the night sky.
+    canvas.drawArc(
+      rect,
+      start,
+      sweep,
+      false,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = strokeWidth * 1.6
+        ..color = color.withValues(alpha: 0.22)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, strokeWidth * 0.8),
+    );
+    canvas.drawArc(
+      rect,
+      start,
+      sweep,
+      false,
+      stroke
+        ..color = color
+        ..strokeWidth = strokeWidth,
+    );
+    // A small bright bead where time is running out from.
+    final head = start + sweep;
+    final r = rect.width / 2;
+    canvas.drawCircle(
+      rect.center + Offset(math.cos(head) * r, math.sin(head) * r),
+      strokeWidth * 0.22,
+      Paint()..color = Tint.cream.withValues(alpha: 0.9),
+    );
   }
 
   @override
