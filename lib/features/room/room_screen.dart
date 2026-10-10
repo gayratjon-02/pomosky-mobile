@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../data/config.dart';
 import '../../data/places_api.dart';
+import '../../data/protocol/server_messages.dart';
 import '../../data/room_api.dart';
 import '../../data/weather_api.dart';
 import '../../data/ws/room_transport.dart';
@@ -489,24 +490,141 @@ class _TimerFace extends StatelessWidget {
   }
 }
 
+/// Who is focusing here: a short stack of faces and their names below.
 class _People extends StatelessWidget {
   const _People({required this.state});
 
   final RoomState state;
 
+  static const _shown = 5;
+  static const _face = 32.0;
+  static const _overlap = 10.0;
+
   @override
   Widget build(BuildContext context) {
     if (state.people.isEmpty) return const SizedBox.shrink();
+    final faces = state.people.take(_shown).toList();
+    final hidden = state.people.length - faces.length + state.morePeople;
     final names = state.people.map((p) => p.name).join(', ');
     final more = state.morePeople > 0 ? ' +${state.morePeople}' : '';
+    final circles = [
+      for (final p in faces) _Face(person: p, size: _face),
+      if (hidden > 0) _MoreFace(count: hidden, size: _face),
+    ];
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      child: Text(
-        '$names$more',
-        textAlign: TextAlign.center,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
+      padding: const EdgeInsets.symmetric(horizontal: Gap.xl, vertical: Gap.s),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            height: _face,
+            width: _face + (circles.length - 1) * (_face - _overlap),
+            child: Stack(
+              children: [
+                for (var i = 0; i < circles.length; i++)
+                  Positioned(left: i * (_face - _overlap), child: circles[i]),
+              ],
+            ),
+          ),
+          const SizedBox(height: Gap.s),
+          Text(
+            '$names$more',
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Tint.creamDim),
+          ),
+        ],
       ),
+    );
+  }
+}
+
+/// A person's picture, or the first letter of their name on a soft tint when
+/// there is no picture or it fails to load.
+class _Face extends StatelessWidget {
+  const _Face({required this.person, required this.size});
+
+  final PersonView person;
+  final double size;
+
+  static const _tints = [Tint.apricot, Tint.sky, Tint.mint, Tint.amber];
+
+  @override
+  Widget build(BuildContext context) {
+    final name = person.name.trim();
+    // Same name, same colour on every phone and every run.
+    final tint =
+        _tints[name.codeUnits.fold(0, (a, b) => a + b) % _tints.length];
+    final initial = Container(
+      alignment: Alignment.center,
+      color: Color.alphaBlend(tint.withValues(alpha: 0.28), Night.raised),
+      child: Text(
+        name.isEmpty ? '?' : name.characters.first.toUpperCase(),
+        textScaler: TextScaler.noScaling,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(color: tint),
+      ),
+    );
+    final url = person.avatarUrl;
+    return _Ring(
+      size: size,
+      child: url == null || url.isEmpty
+          ? initial
+          : Image.network(
+              url,
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => initial,
+            ),
+    );
+  }
+}
+
+class _MoreFace extends StatelessWidget {
+  const _MoreFace({required this.count, required this.size});
+
+  final int count;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return _Ring(
+      size: size,
+      child: Container(
+        alignment: Alignment.center,
+        color: Night.surface,
+        child: Text(
+          '+$count',
+          textScaler: TextScaler.noScaling,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: Tint.creamDim,
+            letterSpacing: 0,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A circle with a dark rim, so overlapping faces stay apart.
+class _Ring extends StatelessWidget {
+  const _Ring({required this.size, required this.child});
+
+  final double size;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      padding: const EdgeInsets.all(2),
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: Night.background,
+      ),
+      child: ClipOval(child: child),
     );
   }
 }
