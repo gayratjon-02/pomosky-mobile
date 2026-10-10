@@ -64,7 +64,7 @@ void main() {
     );
     await tester.tap(find.text('10'));
     await tester.pump();
-    await tester.tap(find.textContaining('Break ·'));
+    await tester.tap(find.text('Start break'));
     expect(started, (false, 10 * 60 * 1000, ''));
   });
 

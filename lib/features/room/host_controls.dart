@@ -91,14 +91,14 @@ class _HostControlsState extends State<HostControls> {
             Expanded(
               child: FilledButton(
                 onPressed: () => _start(true),
-                child: Text('Start focus · $_focus min'),
+                child: const Text('Start focus'),
               ),
             ),
             const SizedBox(width: 8),
             Expanded(
               child: FilledButton.tonal(
                 onPressed: () => _start(false),
-                child: Text('Break · $_break min'),
+                child: const Text('Start break'),
               ),
             ),
           ],
