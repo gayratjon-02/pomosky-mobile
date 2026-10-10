@@ -147,4 +147,43 @@ void main() {
     expect(t.sent.first, contains('timer.pause'));
     expect(t.sent.last, contains('"durationMs":60000'));
   });
+
+  test('the first state seeds the server clock before any pong', () {
+    final t = FakeTransport();
+    // The phone's clock is 40 s ahead of the server's.
+    final s = RoomSession(transport: t, nowMs: () => 45000)..start();
+    t.receive(_state()); // serverNowMs is 5000
+    expect(s.serverNowMs(), 5000);
+  });
+
+  test('a real pong replaces the seed and bumps the clock epoch', () {
+    fakeAsync((async) {
+      var now = 45000;
+      final t = FakeTransport();
+      final s = RoomSession(transport: t, nowMs: () => now)..start();
+      t.setStatus(SocketStatus.connected);
+      t.receive(_state());
+      final seededEpoch = s.state.clockEpoch;
+
+      async.elapse(const Duration(milliseconds: 1));
+      now = 45100; // reply after 100 ms; the server stamped 5080
+      t.receive(const PongMessage(5080));
+      expect(s.serverNowMs(), closeTo(5080 + 50, 5)); // not the old seed
+      // Seed and measurement differ only by the latency, so no new epoch.
+      expect(s.state.clockEpoch, seededEpoch);
+    });
+  });
+
+  test('a big jump of the clock offset is announced', () {
+    fakeAsync((async) {
+      var now = 1000;
+      final t = FakeTransport();
+      final s = RoomSession(transport: t, nowMs: () => now)..start();
+      t.setStatus(SocketStatus.connected);
+      async.elapse(const Duration(milliseconds: 1));
+      now = 1100;
+      t.receive(const PongMessage(9050)); // the server is 8 s ahead
+      expect(s.state.clockEpoch, greaterThan(0));
+    });
+  });
 }

@@ -33,6 +33,9 @@ class RoomSession {
   final List<Timer> _timers = [];
   Timer? _heartbeat;
 
+  // The offset the screens last saw; a bigger move bumps [RoomState.clockEpoch].
+  double _offsetSeen = 0;
+
   RoomState _state = const RoomState();
   RoomState get state => _state;
   Stream<RoomState> get states => _states.stream;
@@ -81,8 +84,12 @@ class RoomSession {
   void _onMessage(ServerMessage m) {
     switch (m) {
       case StateMessage():
+        // The first message has no round trip to measure, but the server time
+        // in it is far better than trusting the phone's clock until a pong.
+        _clock.seed((m.serverNowMs - _nowMs()).toDouble());
         _emit(
           _state.copyWith(
+            clockEpoch: _epochAfterClockMove(),
             timer: m.timer,
             viewers: m.viewers,
             reactions: m.reactions,
@@ -109,12 +116,25 @@ class RoomSession {
               receivedAtMs: _nowMs(),
             ),
           );
+          final epoch = _epochAfterClockMove();
+          if (epoch != _state.clockEpoch) {
+            _emit(_state.copyWith(clockEpoch: epoch));
+          }
         }
       case ErrorMessage():
         _emit(_state.copyWith(error: m));
       case UnknownMessage():
         break;
     }
+  }
+
+  /// The clock epoch to publish now: bumped when the offset moved by half a
+  /// second or more since the screens last saw it.
+  int _epochAfterClockMove() {
+    final offset = _clock.offsetMs;
+    if ((offset - _offsetSeen).abs() < 500) return _state.clockEpoch;
+    _offsetSeen = offset;
+    return _state.clockEpoch + 1;
   }
 
   void _emit(RoomState next) {

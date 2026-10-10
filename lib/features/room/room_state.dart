@@ -17,6 +17,7 @@ class RoomState {
     this.isHost = false,
     this.error,
     this.joined = false,
+    this.clockEpoch = 0,
   });
 
   final SocketStatus connection;
@@ -35,6 +36,10 @@ class RoomState {
   /// True once the first `state` arrived.
   final bool joined;
 
+  /// Counts the times the estimate of the server clock moved noticeably, so
+  /// things derived from it (the lock screen countdown) can be recomputed.
+  final int clockEpoch;
+
   RoomState copyWith({
     SocketStatus? connection,
     TimerView? timer,
@@ -48,6 +53,7 @@ class RoomState {
     ErrorMessage? error,
     bool clearError = false,
     bool? joined,
+    int? clockEpoch,
   }) => RoomState(
     connection: connection ?? this.connection,
     timer: timer ?? this.timer,
@@ -60,5 +66,6 @@ class RoomState {
     isHost: isHost ?? this.isHost,
     error: clearError ? null : (error ?? this.error),
     joined: joined ?? this.joined,
+    clockEpoch: clockEpoch ?? this.clockEpoch,
   );
 }
