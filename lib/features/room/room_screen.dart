@@ -11,6 +11,7 @@ import '../../domain/host_actions.dart';
 import '../../domain/timer_math.dart';
 import '../../domain/weather_text.dart';
 import '../../domain/timer_view.dart';
+import '../../ui/glass.dart';
 import '../../ui/sky/sky_background.dart';
 import '../../ui/sky/sky_inputs.dart';
 import '../../ui/timer_ring.dart';
@@ -333,14 +334,43 @@ class _ConnectionBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = status == SocketStatus.connecting
-        ? 'Connecting…'
-        : 'Connection lost, trying again…';
-    return Container(
-      width: double.infinity,
-      color: Theme.of(context).colorScheme.errorContainer,
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      child: Text(text, textAlign: TextAlign.center),
+    final connecting = status == SocketStatus.connecting;
+    final text = connecting ? 'Connecting…' : 'Connection lost, trying again…';
+    final color = connecting ? Tint.creamDim : Tint.amber;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(Gap.l, Gap.xs, Gap.l, 0),
+      child: GlassCard(
+        strong: true,
+        radius: Radii.pill,
+        padding: const EdgeInsets.symmetric(
+          horizontal: Gap.l,
+          vertical: Gap.s + 2,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (connecting)
+              const SizedBox.square(
+                dimension: 14,
+                child: CircularProgressIndicator(
+                  strokeWidth: 1.6,
+                  color: Tint.creamDim,
+                ),
+              )
+            else
+              const Icon(Icons.cloud_off_rounded, size: 16, color: Tint.amber),
+            const SizedBox(width: Gap.s),
+            Flexible(
+              child: Text(
+                text,
+                style: Theme.of(
+                  context,
+                ).textTheme.labelMedium?.copyWith(color: color),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
