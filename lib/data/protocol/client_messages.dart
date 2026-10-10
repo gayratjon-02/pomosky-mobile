@@ -3,7 +3,7 @@ import 'dart:convert';
 /// Builds the JSON frames the app sends. Field names match the server's
 /// `docs/ws-protocol.md`.
 String _frame(String type, [Map<String, dynamic>? data]) =>
-    jsonEncode({'type': type, if (data != null) 'data': data});
+    jsonEncode({'type': type, 'data': ?data});
 
 abstract final class ClientMessages {
   static String join(String nickname) => _frame('join', {'nickname': nickname});
