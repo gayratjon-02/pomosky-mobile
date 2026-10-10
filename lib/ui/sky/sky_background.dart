@@ -1,9 +1,8 @@
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 
-import 'layers/hills.dart';
-import 'layers/stars.dart';
 import 'sky_inputs.dart';
+import 'sky_layers.dart';
 import 'sky_painter.dart';
 
 /// A live sky behind [child]. It animates only while the app is visible and
@@ -20,8 +19,7 @@ class SkyBackground extends StatefulWidget {
 
 class _SkyBackgroundState extends State<SkyBackground> {
   final _time = ValueNotifier<double>(0);
-  final _stars = StarField();
-  final _hills = Hills();
+  final _layers = SkyLayers();
   Ticker? _ticker;
   bool _reduceMotion = false;
 
@@ -54,8 +52,7 @@ class _SkyBackgroundState extends State<SkyBackground> {
             painter: SkyPainter(
               inputs: widget.inputs,
               time: _time,
-              stars: _stars,
-              hills: _hills,
+              layers: _layers,
             ),
             size: Size.infinite,
           ),
