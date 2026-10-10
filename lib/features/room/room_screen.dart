@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../data/places_api.dart';
 import '../../data/room_api.dart';
 import '../../data/weather_api.dart';
 import '../../data/ws/room_transport.dart';
@@ -12,7 +13,9 @@ import '../../ui/sky/sky_background.dart';
 import '../../ui/sky/sky_inputs.dart';
 import '../../ui/timer_ring.dart';
 import 'host_controls.dart';
+import 'place_picker.dart';
 import 'room_providers.dart';
+import 'room_session.dart';
 import 'room_state.dart';
 
 const _reactions = {'clap': '👏', 'coffee': '☕', 'fire': '🔥', 'heart': '❤️'};
@@ -100,42 +103,78 @@ class _RoomView extends ConsumerWidget {
       body: SkyBackground(
         inputs: _skyFor(state, weather, DateTime.now()),
         child: SafeArea(
-          child: Column(
-            children: [
-              if (state.connection != SocketStatus.connected)
-                _ConnectionBanner(status: state.connection),
-              Expanded(
-                child: Center(
-                  child: _TimerFace(
-                    timer: state.timer,
-                    remainingMs: remaining,
-                    fraction: remainingFraction(state.timer, nowMs),
+          // Scrolls only when the screen is too short for everything (small
+          // phones, large text); otherwise the column fills the screen.
+          child: LayoutBuilder(
+            builder: (context, box) => SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: box.maxHeight),
+                child: IntrinsicHeight(
+                  child: Column(
+                    children: [
+                      if (state.connection != SocketStatus.connected)
+                        _ConnectionBanner(status: state.connection),
+                      Expanded(
+                        child: Center(
+                          child: _TimerFace(
+                            timer: state.timer,
+                            remainingMs: remaining,
+                            fraction: remainingFraction(state.timer, nowMs),
+                            size: (box.maxHeight * 0.36).clamp(180.0, 300.0),
+                          ),
+                        ),
+                      ),
+                      _People(state: state),
+                      if (state.isHost) ...[
+                        HostControls(
+                          actions: hostActionsFor(state.timer, remaining),
+                          city: state.city,
+                          onPickPlace: () => _pickPlace(context, ref, session),
+                          onStart: (focus, durationMs, label) =>
+                              session.startTimer(
+                                focus: focus,
+                                durationMs: durationMs,
+                                label: label,
+                              ),
+                          onPause: session.pause,
+                          onResume: session.resume,
+                          onReset: session.reset,
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                      _ReactionBar(state: state, onReact: session.react),
+                      const SizedBox(height: 16),
+                    ],
                   ),
                 ),
               ),
-              _People(state: state),
-              if (state.isHost) ...[
-                HostControls(
-                  actions: hostActionsFor(state.timer, remaining),
-                  onStart: (focus, durationMs, label) => session.startTimer(
-                    focus: focus,
-                    durationMs: durationMs,
-                    label: label,
-                  ),
-                  onPause: session.pause,
-                  onResume: session.resume,
-                  onReset: session.reset,
-                ),
-                const SizedBox(height: 8),
-              ],
-              _ReactionBar(state: state, onReact: session.react),
-              const SizedBox(height: 16),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
+}
+
+/// Lets the host search for a city and sets it as the room's place; the server
+/// rounds the coordinates to about 1 km.
+Future<void> _pickPlace(
+  BuildContext context,
+  WidgetRef ref,
+  RoomSession session,
+) async {
+  final place = await showModalBottomSheet<Place>(
+    context: context,
+    isScrollControlled: true,
+    builder: (_) => PlacePicker(search: ref.read(placeSearchProvider)),
+  );
+  if (place == null) return;
+  session.setLocation(
+    city: place.name,
+    lat: place.lat,
+    lon: place.lon,
+    tz: place.tz,
+  );
 }
 
 /// The sky above the host's place. Until the host sets one, the longitude is
@@ -202,11 +241,13 @@ class _TimerFace extends StatelessWidget {
     required this.timer,
     required this.remainingMs,
     required this.fraction,
+    required this.size,
   });
 
   final TimerView timer;
   final int remainingMs;
   final double fraction;
+  final double size;
 
   String get _phaseLabel => switch (timer.phase) {
     Phase.focus => 'Focus',
@@ -228,8 +269,8 @@ class _TimerFace extends StatelessWidget {
     return TimerRing(
       fraction: fraction,
       color: _color(theme.colorScheme),
-      size: 300,
-      strokeWidth: 12,
+      size: size,
+      strokeWidth: size / 25,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -240,7 +281,7 @@ class _TimerFace extends StatelessWidget {
             child: Text(
               formatMMSS(remainingMs),
               style: theme.textTheme.displayLarge?.copyWith(
-                fontSize: 64,
+                fontSize: size * 0.21,
                 fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),

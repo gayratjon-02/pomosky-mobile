@@ -11,6 +11,8 @@ class HostControls extends StatefulWidget {
   const HostControls({
     super.key,
     required this.actions,
+    required this.city,
+    required this.onPickPlace,
     required this.onStart,
     required this.onPause,
     required this.onResume,
@@ -18,6 +20,10 @@ class HostControls extends StatefulWidget {
   });
 
   final HostActions actions;
+
+  /// The place the sky shows; empty until the host sets one.
+  final String city;
+  final VoidCallback onPickPlace;
   final void Function(bool focus, int durationMs, String label) onStart;
   final VoidCallback onPause;
   final VoidCallback onResume;
@@ -52,7 +58,26 @@ class _HostControlsState extends State<HostControls> {
       color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.85),
       child: Padding(
         padding: const EdgeInsets.all(12),
-        child: a.canStart ? _setup() : _running(a),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [_place(), a.canStart ? _setup() : _running(a)],
+        ),
+      ),
+    );
+  }
+
+  Widget _place() {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: TextButton.icon(
+        onPressed: widget.onPickPlace,
+        icon: const Icon(Icons.place_outlined, size: 18),
+        label: Text(
+          widget.city.isEmpty
+              ? 'Choose the sky\'s city'
+              : '${widget.city} · change',
+        ),
       ),
     );
   }

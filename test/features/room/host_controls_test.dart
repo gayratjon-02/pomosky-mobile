@@ -24,6 +24,8 @@ const _paused = HostActions(
 
 Widget _app(
   HostActions a, {
+  String city = '',
+  VoidCallback? onPickPlace,
   void Function(bool, int, String)? onStart,
   VoidCallback? onPause,
   VoidCallback? onResume,
@@ -32,6 +34,8 @@ Widget _app(
   home: Scaffold(
     body: HostControls(
       actions: a,
+      city: city,
+      onPickPlace: onPickPlace ?? () {},
       onStart: onStart ?? (_, _, _) {},
       onPause: onPause ?? () {},
       onResume: onResume ?? () {},
@@ -87,5 +91,24 @@ void main() {
     expect(find.text('Pause'), findsNothing);
     await tester.tap(find.text('Resume'));
     expect(resumed, 1);
+  });
+
+  testWidgets('shows the chosen city and lets the host change it', (
+    tester,
+  ) async {
+    var picks = 0;
+    await tester.pumpWidget(
+      _app(_idle, city: 'Seoul', onPickPlace: () => picks++),
+    );
+    expect(find.text('Seoul · change'), findsOneWidget);
+    await tester.tap(find.text('Seoul · change'));
+    expect(picks, 1);
+  });
+
+  testWidgets('asks for a city when none is set, also while running', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_app(_running));
+    expect(find.textContaining('Choose the sky'), findsOneWidget);
   });
 }

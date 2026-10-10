@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/config.dart';
 import '../../data/host_tokens.dart';
 import '../../data/protocol/client_messages.dart';
+import '../../data/places_api.dart';
 import '../../data/room_api.dart';
 import '../../data/weather_api.dart';
 import '../../data/ws/room_socket.dart';
 import '../../data/ws/room_transport.dart';
+import 'place_picker.dart';
 import 'room_session.dart';
 import 'room_state.dart';
 
@@ -79,6 +81,9 @@ class RoomStateNotifier extends AutoDisposeFamilyNotifier<RoomState, String> {
 
 final roomStateProvider = NotifierProvider.autoDispose
     .family<RoomStateNotifier, RoomState, String>(RoomStateNotifier.new);
+
+/// Searches places for the host's city sheet. Tests override it.
+final placeSearchProvider = Provider<PlaceSearch>((ref) => searchPlaces);
 
 /// Fetches the weather; tests override it.
 final weatherFetcherProvider = Provider<Future<WeatherData?> Function(String)>(
