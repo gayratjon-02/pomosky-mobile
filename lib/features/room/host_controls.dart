@@ -58,22 +58,30 @@ class _HostControlsState extends State<HostControls> {
     final a = widget.actions;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: Gap.l),
-      child: GlassCard(
-        strong: true,
-        padding: const EdgeInsets.fromLTRB(Gap.l, Gap.s, Gap.l, Gap.l),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _PlaceRow(city: widget.city, onTap: widget.onPickPlace),
-            const SizedBox(height: Gap.s),
-            AnimatedSize(
-              duration: Motion.normal,
-              curve: Motion.curve,
-              alignment: Alignment.topCenter,
-              child: a.canStart ? _setup() : _running(a),
-            ),
-          ],
+      // A touch of night under the glass: on a bright daytime sky the panel
+      // would otherwise wash out to white behind cream text.
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Night.background.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(Radii.card),
+        ),
+        child: GlassCard(
+          strong: true,
+          padding: const EdgeInsets.fromLTRB(Gap.l, Gap.s, Gap.l, Gap.l),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _PlaceRow(city: widget.city, onTap: widget.onPickPlace),
+              const SizedBox(height: Gap.s),
+              AnimatedSize(
+                duration: Motion.normal,
+                curve: Motion.curve,
+                alignment: Alignment.topCenter,
+                child: a.canStart ? _setup() : _running(a),
+              ),
+            ],
+          ),
         ),
       ),
     );
