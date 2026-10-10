@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -102,11 +103,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         const Spacer(flex: 2),
-                        Text('Pomosky', style: text.displayMedium),
-                        const SizedBox(height: Gap.s),
-                        Text(
-                          'Focus together under a live sky',
-                          style: text.bodyLarge?.copyWith(color: Tint.creamDim),
+                        DuskVeil(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                'Pomosky',
+                                style: text.displayMedium?.copyWith(
+                                  shadows: skyTextShadow,
+                                ),
+                              ),
+                              const SizedBox(height: Gap.s),
+                              Text(
+                                'Focus together under a live sky',
+                                style: text.bodyLarge?.copyWith(
+                                  color: Tint.cream.withValues(alpha: 0.86),
+                                  shadows: skyTextShadow,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         const Spacer(flex: 3),
                         const SizedBox(height: Gap.huge),
@@ -132,7 +148,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           'No account needed',
                           textAlign: TextAlign.center,
                           style: text.bodySmall?.copyWith(
-                            color: Tint.creamFaint,
+                            color: Tint.creamDim,
+                            shadows: skyTextShadow,
                           ),
                         ),
                       ],
@@ -169,37 +186,45 @@ class _JoinPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    return GlassCard(
-      strong: true,
-      padding: const EdgeInsets.all(Gap.m),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(Gap.xs, Gap.xs, Gap.xs, Gap.s),
-            child: Text(
-              'Have a link from a friend?',
-              style: text.titleSmall?.copyWith(color: Tint.creamDim),
+    // A touch of night under the glass, as on the host panel: on a bright sky
+    // the pane would otherwise wash out behind cream text.
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Night.background.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(Radii.card),
+      ),
+      child: GlassCard(
+        strong: true,
+        padding: const EdgeInsets.all(Gap.m),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(Gap.xs, Gap.xs, Gap.xs, Gap.s),
+              child: Text(
+                'Have a link from a friend?',
+                style: text.titleSmall?.copyWith(color: Tint.creamDim),
+              ),
             ),
-          ),
-          TextField(
-            controller: controller,
-            autocorrect: false,
-            enableSuggestions: false,
-            textInputAction: TextInputAction.go,
-            onSubmitted: (_) => onJoin(),
-            onChanged: (_) => onEdit(),
-            style: text.bodyLarge,
-            decoration: InputDecoration(
-              hintText: 'Room link or code',
-              fillColor: Night.background.withValues(alpha: 0.35),
-              error: error == null ? null : const SizedBox.shrink(),
+            TextField(
+              controller: controller,
+              autocorrect: false,
+              enableSuggestions: false,
+              textInputAction: TextInputAction.go,
+              onSubmitted: (_) => onJoin(),
+              onChanged: (_) => onEdit(),
+              style: text.bodyLarge,
+              decoration: InputDecoration(
+                hintText: 'Room link or code',
+                fillColor: Night.background.withValues(alpha: 0.35),
+                error: error == null ? null : const SizedBox.shrink(),
+              ),
             ),
-          ),
-          _Problem(error),
-          const SizedBox(height: Gap.m),
-          GlassButton(label: 'Join room', onPressed: onJoin),
-        ],
+            _Problem(error),
+            const SizedBox(height: Gap.m),
+            GlassButton(label: 'Join room', onPressed: onJoin),
+          ],
+        ),
       ),
     );
   }
@@ -238,7 +263,14 @@ class _Problem extends StatelessWidget {
 /// The sky over the phone's own time zone. The latitude is a fixed middle
 /// value: reading the real location is not allowed, and the time zone is
 /// enough to get day, dusk and night right.
+/// Development only: `--dart-define=HOME_SKY_HOUR=13` shows the home sky at that
+/// local hour, to check daytime and dusk without waiting for them.
+const _homeSkyHour = int.fromEnvironment('HOME_SKY_HOUR', defaultValue: -1);
+
 SkyInputs _localSky(DateTime now) {
+  if (kDebugMode && _homeSkyHour >= 0) {
+    now = DateTime(now.year, now.month, now.day, _homeSkyHour, 15);
+  }
   final lon = now.timeZoneOffset.inMinutes / 60 * 15;
   return SkyInputs.forPlace(now, 35, lon);
 }
