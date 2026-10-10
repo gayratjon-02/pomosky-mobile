@@ -202,4 +202,53 @@ void main() {
     socket.reconnect();
     expect(socket.currentStatus, SocketStatus.closed);
   });
+
+  test(
+    'a reconnect during a slow connect leaves exactly one open socket',
+    () async {
+      var calls = 0;
+      final socket = RoomSocket(
+        url: server.url,
+        origin: 'https://pomosky.example',
+        handshake: () => ['{"type":"join","data":{"nickname":"A"}}'],
+        connector: (url, headers) async {
+          final first = calls++ == 0;
+          if (first) {
+            await Future<void>.delayed(const Duration(milliseconds: 300));
+          }
+          return WebSocket.connect(url, headers: headers);
+        },
+      );
+      socket.connect(); // slow
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      socket.reconnect(); // fast: overtakes the first
+      await within(
+        socket.status.firstWhere((s) => s == SocketStatus.connected),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+
+      expect(calls, 2);
+      final open = server.sockets.where((s) => s.closeCode == null).length;
+      expect(open, 1, reason: 'the stale attempt must close its socket');
+      expect(
+        server.received.length,
+        1,
+        reason: 'only the live one is introduced',
+      );
+      await socket.close();
+    },
+  );
+
+  test('connect twice in a row also keeps one socket', () async {
+    final socket = RoomSocket(
+      url: server.url,
+      origin: 'https://pomosky.example',
+      handshake: () => const [],
+    );
+    socket.connect();
+    socket.connect();
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    expect(server.sockets.where((s) => s.closeCode == null).length, 1);
+    await socket.close();
+  });
 }

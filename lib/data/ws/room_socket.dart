@@ -39,6 +39,7 @@ class RoomSocket implements RoomTransport {
   WebSocket? _socket;
   Timer? _retry;
   int _attempt = 0;
+  int _generation = 0;
   bool _closed = false;
   SocketStatus _current = SocketStatus.connecting;
 
@@ -59,9 +60,14 @@ class RoomSocket implements RoomTransport {
   }
 
   Future<void> _open() async {
+    // Every attempt gets a number. If connect() or reconnect() starts a newer
+    // one while this one is still waiting, the older one is stale and must not
+    // adopt its socket, or two connections would stay open.
+    final generation = ++_generation;
+    WebSocket? socket;
     try {
-      final socket = await _connector(url, {'Origin': origin});
-      if (_closed) {
+      socket = await _connector(url, {'Origin': origin});
+      if (_closed || generation != _generation) {
         await socket.close();
         return;
       }
@@ -69,16 +75,25 @@ class RoomSocket implements RoomTransport {
       _socket = socket;
       _attempt = 0;
       _setStatus(SocketStatus.connected);
+      final adopted = socket;
       socket.listen(
         _onData,
-        onDone: () => _lost(socket),
-        onError: (_) => _lost(socket),
+        onDone: () => _lost(adopted),
+        onError: (_) => _lost(adopted),
         cancelOnError: true,
       );
       for (final frame in handshake()) {
         socket.add(frame);
       }
     } catch (_) {
+      if (generation != _generation) {
+        socket?.close().catchError((_) {});
+        return;
+      }
+      // A failure after the socket was adopted (the handshake could not be
+      // sent): drop it so the retry starts from a clean state.
+      if (identical(_socket, socket)) _socket = null;
+      socket?.close().catchError((_) {});
       _scheduleRetry();
     }
   }
@@ -112,6 +127,7 @@ class RoomSocket implements RoomTransport {
   void reconnect() {
     if (_closed) return;
     _retry?.cancel();
+    _generation++; // an attempt still in flight is now stale
     final old = _socket;
     _socket = null; // its onDone is then ignored by _lost
     old?.close().catchError((_) {});
