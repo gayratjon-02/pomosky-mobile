@@ -1,17 +1,30 @@
-# pomosky_mobile
+# pomosky-mobile
 
-A new Flutter project.
+Flutter app for [Pomosky](https://pomosky-c157de.eastasia.cloudapp.azure.com): shared pomodoro
+rooms under a live sky. It talks to the Go backend over HTTP and a WebSocket; the server owns the timer.
 
-## Getting Started
+## Run
 
-This project is a starting point for a Flutter application.
+```bash
+flutter pub get
+flutter run                                   # simulator or a connected phone
+flutter run --dart-define=BASE_URL=http://localhost:8080
+```
 
-A few resources to get you started if this is your first Flutter project:
+## Check
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+```bash
+dart format --set-exit-if-changed lib test
+flutter analyze
+flutter test
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Layout
+
+```
+lib/core       pure Dart helpers (timer maths, clock offset)
+lib/domain     room and timer state, no I/O
+lib/data       protocol models, WebSocket and HTTP clients
+lib/features   screens and widgets, one folder per feature
+lib/ui         theme and shared widgets
+```
