@@ -2,7 +2,7 @@
 /// `flutter run --dart-define=BASE_URL=http://localhost:8080`.
 const baseUrl = String.fromEnvironment(
   'BASE_URL',
-  defaultValue: 'https://pomosky-c157de.eastasia.cloudapp.azure.com',
+  defaultValue: 'https://pomosky.pro',
 );
 
 /// The WebSocket address of a room, `ws(s)://host/ws/{id}`.
