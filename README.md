@@ -1,6 +1,6 @@
 # pomosky-mobile
 
-Flutter app for [Pomosky](https://pomosky-c157de.eastasia.cloudapp.azure.com): shared pomodoro
+Flutter app for [Pomosky](https://pomosky.pro): shared pomodoro
 rooms under a live sky that follows the real weather of the host's city. It talks to the Go
 backend over HTTP and one WebSocket per room; **the server owns the timer**, the app only shows it.
 
